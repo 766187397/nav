@@ -113,27 +113,15 @@
               <textarea v-model="editForm.description" placeholder="输入网站描述" rows="3"></textarea>
             </div>
             <div class="form-group">
-              <label class="block text-sm font-medium text-gray-700 mb-2">所属分类</label>
-              <div class="flex items-center space-x-2">
-                <select
-                  v-model="editForm.categoryId"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+              <label class="block">所属分类</label>
+              <div class="select">
+                <select v-model="editForm.categoryId" class="">
                   <option value="">请选择分类</option>
-                  <option
-                    v-for="category in categories"
-                    :key="category.id"
-                    :value="category.id"
-                  >
+                  <option v-for="category in categories" :key="category.id" :value="category.id">
                     {{ category.icon }} {{ category.name }}
                   </option>
                 </select>
-                <button
-                  @click="openAddCategoryModal"
-                  class="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  新增分类
-                </button>
+                <button @click="openAddCategoryModal" class="btn btn-primary">新增分类</button>
               </div>
             </div>
             <div class="form-actions">
@@ -1189,6 +1177,17 @@ const cancelAddCategory = () => {
 .empty-state p {
   margin: 0 0 2rem 0;
   font-size: 1.1rem;
+}
+
+.select {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.select > .btn {
+  width: 130px;
 }
 
 @media (max-width: 1024px) {
