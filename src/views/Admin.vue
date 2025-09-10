@@ -113,13 +113,28 @@
               <textarea v-model="editForm.description" placeholder="输入网站描述" rows="3"></textarea>
             </div>
             <div class="form-group">
-              <label>所属分类</label>
-              <select v-model="editForm.categoryId" required>
-                <option value="">选择分类</option>
-                <option v-for="category in websitesData.categories" :key="category.id" :value="category.id">
-                  {{ category.icon }} {{ category.name }}
-                </option>
-              </select>
+              <label class="block text-sm font-medium text-gray-700 mb-2">所属分类</label>
+              <div class="flex items-center space-x-2">
+                <select
+                  v-model="editForm.categoryId"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">请选择分类</option>
+                  <option
+                    v-for="category in categories"
+                    :key="category.id"
+                    :value="category.id"
+                  >
+                    {{ category.icon }} {{ category.name }}
+                  </option>
+                </select>
+                <button
+                  @click="openAddCategoryModal"
+                  class="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  新增分类
+                </button>
+              </div>
             </div>
             <div class="form-actions">
               <button
@@ -266,6 +281,41 @@
         </div>
       </div>
     </div>
+
+    <!-- 新增分类模态框 -->
+    <div v-if="showAddCategoryModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>➕ 新增分类</h3>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>分类名称</label>
+            <input v-model="newCategoryForm.name" type="text" placeholder="输入分类名称" required />
+          </div>
+          <div class="form-group">
+            <label>分类图标</label>
+            <input v-model="newCategoryForm.icon" type="text" placeholder="输入分类图标（如：📁）" required />
+          </div>
+          <div v-if="addCategoryStatus === 'saving'" class="import-status">
+            <div class="loading-spinner"></div>
+            <span>正在添加分类...</span>
+          </div>
+          <div v-if="addCategoryStatus === 'success'" class="import-status success">✅ 添加成功！</div>
+          <div v-if="addCategoryStatus === 'error'" class="import-status error">❌ 添加失败</div>
+        </div>
+        <div class="modal-actions">
+          <button
+            @click="addNewCategory"
+            class="btn btn-primary"
+            :disabled="!newCategoryForm.name || !newCategoryForm.icon || addCategoryStatus === 'saving'">
+            <span v-if="addCategoryStatus === 'saving'">⏳ 添加中...</span>
+            <span v-else>➕ 添加分类</span>
+          </button>
+          <button @click="cancelAddCategory" class="btn btn-secondary">取消</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -290,12 +340,22 @@ const showImportModal = ref<boolean>(false);
 const importStatus = ref<"idle" | "importing" | "success" | "error">("idle");
 const importFile = ref<File | null>(null);
 
+// 新增分类相关状态
+const showAddCategoryModal = ref<boolean>(false);
+const addCategoryStatus = ref<"idle" | "saving" | "success" | "error">("idle");
+
 interface EditForm {
   name: string;
   url: string;
   icon: string;
   description: string;
   categoryId: string;
+}
+
+// 新增分类表单
+interface NewCategoryForm {
+  name: string;
+  icon: string;
 }
 
 // 编辑表单
@@ -307,9 +367,15 @@ const editForm = ref<EditForm>({
   categoryId: "",
 });
 
+// 新增分类表单
+const newCategoryForm = ref<NewCategoryForm>({
+  name: "",
+  icon: "",
+});
+
 // 计算属性
 const filteredCategories = computed(() => {
-  return websitesData.categories;
+  return categories.value;
 });
 
 const filteredWebsites = computed(() => {
@@ -317,7 +383,7 @@ const filteredWebsites = computed(() => {
 
   // 分类筛选
   if (selectedCategory.value) {
-    const category = websitesData.categories.find((c) => c.id === selectedCategory.value);
+    const category = categories.value.find((c) => c.id === selectedCategory.value);
     if (category) {
       websites = websites.filter((w) => w.category === category.name);
     }
@@ -383,7 +449,7 @@ const loadWebsites = async () => {
 };
 
 const getCategoryIcon = (categoryName: string) => {
-  const category = websitesData.categories.find((c) => c.name === categoryName);
+  const category = categories.value.find((c) => c.name === categoryName);
   return category ? category.icon : "📁";
 };
 
@@ -420,7 +486,7 @@ const addNewWebsite = () => {
 
 const editWebsite = (website: SearchResult) => {
   editingWebsite.value = website;
-  const category = websitesData.categories.find((c) => c.name === website.category);
+  const category = categories.value.find((c) => c.name === website.category);
 
   editForm.value = {
     name: website.name,
@@ -693,6 +759,78 @@ const readFileAsText = (file: File): Promise<string> => {
     reader.onerror = (e) => reject(e);
     reader.readAsText(file);
   });
+};
+
+// 新增分类相关方法
+const openAddCategoryModal = () => {
+  showAddCategoryModal.value = true;
+  newCategoryForm.value = {
+    name: "",
+    icon: "",
+  };
+  addCategoryStatus.value = "idle";
+};
+
+const addNewCategory = async () => {
+  if (!newCategoryForm.value.name || !newCategoryForm.value.icon) return;
+
+  try {
+    addCategoryStatus.value = "saving";
+
+    // 模拟保存操作
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // 生成新的分类ID
+    const newId = `category-${Date.now()}`;
+
+    // 创建新分类
+    const newCategory = {
+      id: newId,
+      name: newCategoryForm.value.name,
+      icon: newCategoryForm.value.icon,
+      websites: [],
+    };
+
+    // 添加到分类列表
+    categories.value.push(newCategory);
+
+    // 保存到 localforage
+    const dataToSave = JSON.parse(JSON.stringify(categories.value));
+    await localforage.setItem("websiteCategories", dataToSave);
+
+    // 更新状态
+    addCategoryStatus.value = "success";
+
+    // 重新加载数据
+    loadWebsites();
+
+    // 2秒后关闭模态框
+    setTimeout(() => {
+      showAddCategoryModal.value = false;
+      addCategoryStatus.value = "idle";
+      newCategoryForm.value = {
+        name: "",
+        icon: "",
+      };
+    }, 2000);
+  } catch (error) {
+    console.error("添加分类失败:", error);
+    addCategoryStatus.value = "error";
+
+    // 5秒后重置错误状态
+    setTimeout(() => {
+      addCategoryStatus.value = "idle";
+    }, 5000);
+  }
+};
+
+const cancelAddCategory = () => {
+  showAddCategoryModal.value = false;
+  addCategoryStatus.value = "idle";
+  newCategoryForm.value = {
+    name: "",
+    icon: "",
+  };
 };
 </script>
 
