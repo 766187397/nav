@@ -49,9 +49,9 @@
               </a>
             </li>
             <li>
-              <a href="#" class="nav-link" @click.prevent="showByCategory">
-                <span class="nav-icon">📂</span>
-                按分类查看
+              <a href="#" class="nav-link" @click.prevent="openAddCategoryModal">
+                <span class="nav-icon">➕</span>
+                新增分类
               </a>
             </li>
           </ul>
@@ -64,9 +64,7 @@
                 v-for="category in filteredCategories"
                 :key="category.id"
                 :class="['category-tag-wrapper', { active: selectedCategory === category.id }]">
-                <span
-                  class="category-tag"
-                  @click="toggleCategoryFilter(category.id)">
+                <span class="category-tag" @click="toggleCategoryFilter(category.id)">
                   {{ category.icon }} {{ category.name }}
                 </span>
                 <button
@@ -95,7 +93,7 @@
             <button v-if="!isEditing" @click="showImportModal = true" class="btn btn-success">
               📥 导入数据
             </button>
-            <button v-if="!isEditing" @click="addNewWebsite" class="btn btn-primary">➕ 添加网站</button>
+            <!-- <button v-if="!isEditing" @click="addNewWebsite" class="btn btn-primary">➕ 添加网站</button> -->
             <button v-if="!isEditing" @click="showResetConfirm = true" class="btn btn-warning">
               🔄 重置数据
             </button>
@@ -131,7 +129,6 @@
                     {{ category.icon }} {{ category.name }}
                   </option>
                 </select>
-                <button @click="openAddCategoryModal" class="btn btn-primary">新增分类</button>
               </div>
             </div>
             <div class="form-actions">
@@ -293,15 +290,9 @@
           </div>
           <div class="form-group">
             <label>分类图标</label>
-            <select
-              v-model="newCategoryForm.icon"
-              class="emoji-select"
-              required>
+            <select v-model="newCategoryForm.icon" class="emoji-select" required>
               <option value="">请选择图标</option>
-              <option
-                v-for="emoji in emojisData.emojis"
-                :key="emoji.value"
-                :value="emoji.value">
+              <option v-for="emoji in emojisData.emojis" :key="emoji.value" :value="emoji.value">
                 {{ emoji.value }} {{ emoji.name }} ({{ emoji.category }})
               </option>
             </select>
@@ -513,11 +504,6 @@ const showAllWebsites = () => {
 
 const toggleCategoryFilter = (categoryId: string) => {
   selectedCategory.value = selectedCategory.value === categoryId ? "" : categoryId;
-};
-
-const showByCategory = () => {
-  // 可以扩展为显示分类选择模态框
-  selectedCategory.value = "";
 };
 
 const addNewWebsite = () => {
@@ -883,9 +869,11 @@ const cancelAddCategory = () => {
 
 // 删除分类相关方法
 const confirmDeleteCategory = (categoryId: string) => {
-  const category = categories.value.find(c => c.id === categoryId);
+  const category = categories.value.find((c) => c.id === categoryId);
   if (category && category.websites.length > 0) {
-    alert(`无法删除分类"${category.name}"，该分类下还有 ${category.websites.length} 个网站。请先移动或删除这些网站。`);
+    alert(
+      `无法删除分类"${category.name}"，该分类下还有 ${category.websites.length} 个网站。请先移动或删除这些网站。`
+    );
     return;
   }
 
@@ -906,7 +894,7 @@ const deleteCategory = async () => {
     deleteCategoryStatus.value = "deleting";
 
     // 从分类列表中移除
-    categories.value = categories.value.filter(c => c.id !== deletingCategory.value);
+    categories.value = categories.value.filter((c) => c.id !== deletingCategory.value);
 
     // 保存到 localforage
     const dataToSave = JSON.parse(JSON.stringify(categories.value));
@@ -1024,9 +1012,9 @@ const deleteCategory = async () => {
   font-size: 0.875rem;
 }
 
-.category-tag:hover {
+/* .category-tag:hover {
   background: #f3f4f6;
-}
+} */
 
 .category-tag.active {
   background: #4f46e5;
