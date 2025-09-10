@@ -216,14 +216,14 @@
   };
 
   onMounted(() => {
-  window.addEventListener("scroll", handleScroll);
-  loadWebsiteData();
-  
-  // 页面加载完成后立即调用一次，确保初始状态正确
-  setTimeout(() => {
-    handleScroll();
-  }, 100);
-});
+    window.addEventListener("scroll", handleScroll);
+    loadWebsiteData();
+
+    // 页面加载完成后立即调用一次，确保初始状态正确
+    setTimeout(() => {
+      handleScroll();
+    }, 100);
+  });
 
   onUnmounted(() => {
     window.removeEventListener("scroll", handleScroll);
@@ -263,6 +263,7 @@
   }
 
   .sidebar-header h3 {
+    text-align: center;
     font-size: 1.125rem;
     font-weight: 600;
     color: #1f2937;
@@ -458,24 +459,31 @@
       flex-direction: column;
     }
 
-    .nav-sidebar {
+    /* .nav-sidebar {
       position: static;
       width: 100%;
       height: auto;
       border-right: none;
       border-bottom: 1px solid #e5e7eb;
-    }
+      left: 0;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease;
+    } */
+
+    /* .nav-sidebar.show-nav {
+      transform: translateY(0);
+    } */
 
     .nav-content {
       margin-left: 0;
       padding: 1rem;
     }
 
-    .category-nav {
+    /* .category-nav {
       flex-direction: row;
       overflow-x: auto;
       padding: 0.5rem;
-    }
+    } */
 
     .nav-item {
       white-space: nowrap;

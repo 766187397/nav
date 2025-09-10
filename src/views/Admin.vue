@@ -660,6 +660,12 @@
     color: #1f2937;
     margin: 0;
   }
+  .toolbar-right{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
 
   .btn {
     padding: 0.75rem 1.5rem;
