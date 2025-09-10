@@ -197,7 +197,8 @@
       } else {
         // 如果没有本地数据，使用JSON数据并保存到localforage
         categories.value = websitesData.categories;
-        await localforage.setItem("websiteCategories", websitesData.categories);
+        const dataToSave = JSON.parse(JSON.stringify(websitesData.categories));
+        await localforage.setItem("websiteCategories", dataToSave);
         console.log("从JSON文件加载并保存到本地存储");
       }
 
