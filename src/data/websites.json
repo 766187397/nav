@@ -1,0 +1,159 @@
+{
+  "categories": [
+    {
+      "id": "design",
+      "name": "设计资源",
+      "icon": "🎨",
+      "websites": [
+        {
+          "name": "Dribbble",
+          "url": "https://dribbble.com",
+          "icon": "https://cdn.dribbble.com/assets/favicon-b38525134603b9513174ec887936b3cf.ico",
+          "description": "全球设计师创意作品分享平台"
+        },
+        {
+          "name": "Behance",
+          "url": "https://www.behance.net",
+          "icon": "https://a5.behance.net/2acd25f456a2eece8728f4bf57a8ccee0b530c5a/images/site/favicon.ico",
+          "description": "Adobe旗下的创意作品展示平台"
+        },
+        {
+          "name": "Pinterest",
+          "url": "https://www.pinterest.com",
+          "icon": "https://s.pinimg.com/webapp/favicon_48x48-747b5043.png",
+          "description": "灵感图片收藏和发现平台"
+        },
+        {
+          "name": "站酷",
+          "url": "https://www.zcool.com.cn",
+          "icon": "https://static.zcool.cn/git/images/zcool_favicon.ico",
+          "description": "中国设计师互动平台"
+        }
+      ]
+    },
+    {
+      "id": "development",
+      "name": "开发工具",
+      "icon": "💻",
+      "websites": [
+        {
+          "name": "GitHub",
+          "url": "https://github.com",
+          "icon": "https://github.githubassets.com/favicons/favicon.ico",
+          "description": "全球最大的代码托管平台"
+        },
+        {
+          "name": "Stack Overflow",
+          "url": "https://stackoverflow.com",
+          "icon": "https://cdn.sstatic.net/Sites/stackoverflow/Img/favicon.ico",
+          "description": "程序员问答社区"
+        },
+        {
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org",
+          "icon": "https://developer.mozilla.org/favicon-48x48.cbbd161b.png",
+          "description": "Mozilla开发者文档"
+        },
+        {
+          "name": "Vue.js",
+          "url": "https://vuejs.org",
+          "icon": "https://vuejs.org/images/logo.png",
+          "description": "渐进式JavaScript框架"
+        }
+      ]
+    },
+    {
+      "id": "productivity",
+      "name": "效率工具",
+      "icon": "🚀",
+      "websites": [
+        {
+          "name": "Notion",
+          "url": "https://www.notion.so",
+          "icon": "https://www.notion.so/images/favicon.ico",
+          "description": "一体化工作空间"
+        },
+        {
+          "name": "Trello",
+          "url": "https://trello.com",
+          "icon": "https://trello.com/favicon.ico",
+          "description": "看板式项目管理工具"
+        },
+        {
+          "name": "语雀",
+          "url": "https://www.yuque.com",
+          "icon": "https://mdn.alipayobjects.com/huamei_0prmtq/afts/img/A*vMxOQI8aU4kAAAAAAAAAAAAADvuFAQ/original",
+          "description": "阿里云文档与知识库"
+        },
+        {
+          "name": "飞书",
+          "url": "https://www.feishu.cn",
+          "icon": "https://sf1-cdn-tos.toutiaostatic.com/obj/feishu-static/icon/favicon.ico",
+          "description": "字节跳动办公协作平台"
+        }
+      ]
+    },
+    {
+      "id": "learning",
+      "name": "学习平台",
+      "icon": "📚",
+      "websites": [
+        {
+          "name": "Coursera",
+          "url": "https://www.coursera.org",
+          "icon": "https://d3njjcbhbojbot.cloudfront.net/web/images/favicons/favicon-v2-194x194.png",
+          "description": "国际在线课程平台"
+        },
+        {
+          "name": "慕课网",
+          "url": "https://www.imooc.com",
+          "icon": "https://www.imooc.com/favicon.ico",
+          "description": "IT技能学习平台"
+        },
+        {
+          "name": "Bilibili",
+          "url": "https://www.bilibili.com",
+          "icon": "https://www.bilibili.com/favicon.ico",
+          "description": "视频学习与娱乐平台"
+        },
+        {
+          "name": "知乎",
+          "url": "https://www.zhihu.com",
+          "icon": "https://static.zhihu.com/heifetz/favicon.ico",
+          "description": "中文问答社区"
+        }
+      ]
+    },
+    {
+      "id": "news",
+      "name": "资讯媒体",
+      "icon": "📰",
+      "websites": [
+        {
+          "name": "36氪",
+          "url": "https://www.36kr.com",
+          "icon": "https://www.36kr.com/favicon.ico",
+          "description": "科技创新媒体"
+        },
+        {
+          "name": "虎嗅",
+          "url": "https://www.huxiu.com",
+          "icon": "https://www.huxiu.com/favicon.ico",
+          "description": "商业科技信息平台"
+        },
+        {
+          "name": "Product Hunt",
+          "url": "https://www.producthunt.com",
+          "icon": "https://www.producthunt.com/favicon.ico",
+          "description": "新产品发现平台"
+        },
+        {
+          "name": "InfoQ",
+          "url": "https://www.infoq.cn",
+          "icon": "https://www.infoq.cn/static/favicon.ico",
+          "description": "技术社区与媒体"
+        }
+      ]
+    }
+  ]
+}
