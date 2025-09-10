@@ -92,15 +92,82 @@
 <script setup lang="ts">
   import { ref, withDefaults, computed } from "vue";
   import websitesData from "../data/websites.json";
-  import {
-    getEngineName,
-    hotSuggestions,
-    searchWebsites,
-    isValidSearchQuery,
-    performExternalSearch,
-    openUrlInNewTab,
-  } from "../utils/searchUtils";
-  import type { SearchEngine, SearchResult } from "../types/search";
+  import type { SearchEngine, SearchResult, SearchEngineMap, Category } from "../types/search";
+
+  // 搜索引擎配置
+  const searchEngineConfig: SearchEngineMap = {
+    site: {
+      name: "站内搜索",
+      urlBuilder: () => "#",
+    },
+    baidu: {
+      name: "百度",
+      urlBuilder: (query: string) => `https://www.baidu.com/s?wd=${encodeURIComponent(query)}`,
+    },
+    bing: {
+      name: "必应",
+      urlBuilder: (query: string) => `https://www.bing.com/search?q=${encodeURIComponent(query)}`,
+    },
+    google: {
+      name: "谷歌",
+      urlBuilder: (query: string) => `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+    },
+  };
+
+  // 获取搜索引擎名称
+  const getEngineName = (engine: SearchEngine): string => {
+    return searchEngineConfig[engine].name;
+  };
+
+  // 构建搜索URL
+  const buildSearchUrl = (engine: SearchEngine, query: string): string => {
+    return searchEngineConfig[engine].urlBuilder(query);
+  };
+
+  // 热门搜索建议
+  const hotSuggestions: string[] = websitesData.hotSuggestions;
+
+  // 搜索网站数据
+  const searchWebsites = (query: string, categories: Category[]): SearchResult[] => {
+    const results: SearchResult[] = [];
+    const lowerQuery = query.toLowerCase();
+
+    categories.forEach((category) => {
+      category.websites.forEach((website) => {
+        if (
+          website.name.toLowerCase().includes(lowerQuery) ||
+          website.description.toLowerCase().includes(lowerQuery) ||
+          website.url.toLowerCase().includes(lowerQuery)
+        ) {
+          results.push({
+            ...website,
+            category: category.name,
+            categoryIcon: category.icon,
+          });
+        }
+      });
+    });
+
+    return results;
+  };
+
+  // 验证搜索查询
+  const isValidSearchQuery = (query: string): boolean => {
+    return query.trim().length > 0;
+  };
+
+  // 执行外部搜索
+  const performExternalSearch = (engine: SearchEngine, query: string): void => {
+    const url = buildSearchUrl(engine, query);
+    openUrlInNewTab(url);
+  };
+
+  // 在新标签页打开URL
+  const openUrlInNewTab = (url: string): void => {
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank');
+    }
+  };
 
   interface Props {
     placeholder?: string;
