@@ -1,4 +1,15 @@
 {
+  "hotSuggestions": [
+    "Vue3教程",
+    "React开发",
+    "TypeScript",
+    "前端框架",
+    "JavaScript",
+    "CSS技巧",
+    "Node.js",
+    "Python编程",
+    "人工智能"
+  ],
   "categories": [
     {
       "id": "design",

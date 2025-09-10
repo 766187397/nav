@@ -63,7 +63,10 @@
           class="result-item"
           @click="openUrlInNewTab(result.url)">
           <div class="result-icon">
-            <img :src="result.icon" :alt="result.name" @error="(e) => { const target = e.target as HTMLImageElement; target.style.display = 'none'; }" />
+            <img
+              :src="result.icon"
+              :alt="result.name"
+              @error="(e) => { const target = e.target as HTMLImageElement; target.style.display = 'none'; }" />
             <span v-if="!result.icon" class="icon-fallback">{{ result.name.charAt(0) }}</span>
           </div>
           <div class="result-content">
@@ -90,13 +93,13 @@
   import { ref, withDefaults, computed } from "vue";
   import websitesData from "../data/websites.json";
   import {
-  getEngineName,
-  hotSuggestions,
-  searchWebsites,
-  isValidSearchQuery,
-  performExternalSearch,
-  openUrlInNewTab,
-} from "../utils/searchUtils";
+    getEngineName,
+    hotSuggestions,
+    searchWebsites,
+    isValidSearchQuery,
+    performExternalSearch,
+    openUrlInNewTab,
+  } from "../utils/searchUtils";
   import type { SearchEngine, SearchResult } from "../types/search";
 
   interface Props {

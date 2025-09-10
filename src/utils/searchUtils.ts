@@ -1,4 +1,5 @@
 import type { SearchEngine, SearchEngineMap, SearchResult, Category } from "../types/search";
+import websitesData from "../data/websites.json";
 
 // 搜索引擎配置
 export const searchEngineConfig: SearchEngineMap = {
@@ -31,17 +32,7 @@ export const buildSearchUrl = (engine: SearchEngine, query: string): string => {
 };
 
 // 热门搜索建议
-export const hotSuggestions: string[] = [
-  "Vue3教程",
-  "React开发",
-  "TypeScript",
-  "前端框架",
-  "JavaScript",
-  "CSS技巧",
-  "Node.js",
-  "Python编程",
-  "人工智能",
-];
+export const hotSuggestions: string[] = websitesData.hotSuggestions;
 
 // 搜索网站数据
 export const searchWebsites = (query: string, categories: Category[]): SearchResult[] => {
