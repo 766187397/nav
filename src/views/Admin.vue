@@ -283,7 +283,18 @@
           </div>
           <div class="form-group">
             <label>分类图标</label>
-            <input v-model="newCategoryForm.icon" type="text" placeholder="输入分类图标（如：📁）" required />
+            <select
+              v-model="newCategoryForm.icon"
+              class="emoji-select"
+              required>
+              <option value="">请选择图标</option>
+              <option
+                v-for="emoji in emojisData.emojis"
+                :key="emoji.value"
+                :value="emoji.value">
+                {{ emoji.value }} {{ emoji.name }} ({{ emoji.category }})
+              </option>
+            </select>
           </div>
           <div v-if="addCategoryStatus === 'saving'" class="import-status">
             <div class="loading-spinner"></div>
@@ -311,6 +322,7 @@
 import { ref, computed, onMounted } from "vue";
 import localforage from "localforage";
 import websitesData from "@/data/websites.json";
+import emojisData from "@/data/emojis.json";
 import type { SearchResult } from "@/types/search";
 
 // 状态管理变量
@@ -1367,5 +1379,45 @@ const cancelAddCategory = () => {
 
 .btn-danger:hover {
   background: #b91c1c;
+}
+
+/* Emoji选择器样式 */
+.emoji-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  transition: border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.emoji-select:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.emoji-select option {
+  font-size: 1rem;
+  padding: 0.5rem;
+}
+
+/* 新增分类模态框特定样式 */
+.add-category-modal .modal {
+  max-width: 450px;
+}
+
+.add-category-modal .modal-header h3 {
+  color: #059669;
+}
+
+.add-category-modal .btn-primary {
+  background: #059669;
+}
+
+.add-category-modal .btn-primary:hover {
+  background: #047857;
 }
 </style>
