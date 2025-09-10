@@ -60,13 +60,23 @@
           <div class="category-filter" v-if="filteredCategories.length > 0">
             <h4>分类筛选</h4>
             <div class="category-tags">
-              <span
+              <div
                 v-for="category in filteredCategories"
                 :key="category.id"
-                :class="['category-tag', { active: selectedCategory === category.id }]"
-                @click="toggleCategoryFilter(category.id)">
-                {{ category.icon }} {{ category.name }}
-              </span>
+                :class="['category-tag-wrapper', { active: selectedCategory === category.id }]">
+                <span
+                  class="category-tag"
+                  @click="toggleCategoryFilter(category.id)">
+                  {{ category.icon }} {{ category.name }}
+                </span>
+                <button
+                  v-if="category.id !== 'default'"
+                  @click.stop="confirmDeleteCategory(category.id)"
+                  class="category-delete-btn"
+                  title="删除分类">
+                  ❌
+                </button>
+              </div>
             </div>
           </div>
         </nav>
@@ -315,6 +325,39 @@
         </div>
       </div>
     </div>
+
+    <!-- 删除分类确认模态框 -->
+    <div v-if="showDeleteCategoryConfirm" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>🗑️ 确认删除分类</h3>
+        </div>
+        <div class="modal-body">
+          <p>确定要删除这个分类吗？此操作无法撤销！</p>
+          <div v-if="deleteCategoryStatus === 'deleting'" class="import-status">
+            <div class="loading-spinner"></div>
+            <span>正在删除分类...</span>
+          </div>
+          <div v-if="deleteCategoryStatus === 'success'" class="import-status success">✅ 删除成功！</div>
+          <div v-if="deleteCategoryStatus === 'error'" class="import-status error">❌ 删除失败</div>
+        </div>
+        <div class="modal-actions">
+          <button
+            @click="deleteCategory"
+            class="btn btn-danger"
+            :disabled="deleteCategoryStatus === 'deleting'">
+            <span v-if="deleteCategoryStatus === 'deleting'">⏳ 删除中...</span>
+            <span v-else>🗑️ 确认删除</span>
+          </button>
+          <button
+            @click="cancelDeleteCategory"
+            class="btn btn-secondary"
+            :disabled="deleteCategoryStatus === 'deleting'">
+            取消
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -343,6 +386,11 @@ const importFile = ref<File | null>(null);
 // 新增分类相关状态
 const showAddCategoryModal = ref<boolean>(false);
 const addCategoryStatus = ref<"idle" | "saving" | "success" | "error">("idle");
+
+// 删除分类相关状态
+const showDeleteCategoryConfirm = ref<boolean>(false);
+const deletingCategory = ref<string | null>(null);
+const deleteCategoryStatus = ref<"idle" | "deleting" | "success" | "error">("idle");
 
 interface EditForm {
   name: string;
@@ -832,6 +880,60 @@ const cancelAddCategory = () => {
     icon: "",
   };
 };
+
+// 删除分类相关方法
+const confirmDeleteCategory = (categoryId: string) => {
+  const category = categories.value.find(c => c.id === categoryId);
+  if (category && category.websites.length > 0) {
+    alert(`无法删除分类"${category.name}"，该分类下还有 ${category.websites.length} 个网站。请先移动或删除这些网站。`);
+    return;
+  }
+
+  deletingCategory.value = categoryId;
+  showDeleteCategoryConfirm.value = true;
+};
+
+const cancelDeleteCategory = () => {
+  showDeleteCategoryConfirm.value = false;
+  deletingCategory.value = null;
+  deleteCategoryStatus.value = "idle";
+};
+
+const deleteCategory = async () => {
+  if (!deletingCategory.value) return;
+
+  try {
+    deleteCategoryStatus.value = "deleting";
+
+    // 从分类列表中移除
+    categories.value = categories.value.filter(c => c.id !== deletingCategory.value);
+
+    // 保存到 localforage
+    const dataToSave = JSON.parse(JSON.stringify(categories.value));
+    await localforage.setItem("websiteCategories", dataToSave);
+
+    // 更新状态
+    deleteCategoryStatus.value = "success";
+
+    // 重新加载数据
+    loadWebsites();
+
+    // 2秒后关闭确认对话框
+    setTimeout(() => {
+      showDeleteCategoryConfirm.value = false;
+      deletingCategory.value = null;
+      deleteCategoryStatus.value = "idle";
+    }, 2000);
+  } catch (error) {
+    console.error("删除分类失败:", error);
+    deleteCategoryStatus.value = "error";
+
+    // 5秒后重置错误状态
+    setTimeout(() => {
+      deleteCategoryStatus.value = "idle";
+    }, 5000);
+  }
+};
 </script>
 
 <style scoped>
@@ -914,8 +1016,8 @@ const cancelAddCategory = () => {
 
 .category-tag {
   padding: 0.5rem 0.75rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  /* background: #f9fafb;
+  border: 1px solid #e5e7eb; */
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -930,6 +1032,57 @@ const cancelAddCategory = () => {
   background: #4f46e5;
   border-color: #4f46e5;
   color: white;
+}
+
+.category-tag-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.category-tag-wrapper:hover {
+  background: #f3f4f6;
+}
+
+.category-tag-wrapper.active {
+  background: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.category-tag-wrapper.active .category-tag {
+  color: white;
+}
+
+.category-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.category-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.category-tag-wrapper.active .category-delete-btn {
+  color: white;
+  opacity: 0.8;
+}
+
+.category-tag-wrapper.active .category-delete-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 1;
 }
 
 .admin-main {
