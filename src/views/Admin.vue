@@ -509,22 +509,33 @@
 
   // 计算属性
   const filteredCategories = computed(() => {
-    if (!searchQuery.value) {
-      return categories.value;
+    let filtered = categories.value;
+
+    // 分类筛选
+    if (selectedCategory.value) {
+      const category = categories.value.find((c) => c.id === selectedCategory.value);
+      if (category) {
+        filtered = filtered.filter((c) => c.id === selectedCategory.value);
+      }
     }
 
-    const query = searchQuery.value.toLowerCase();
-    return categories.value
-      .map((category) => ({
-        ...category,
-        websites: category.websites.filter(
-          (website) =>
-            website.name.toLowerCase().includes(query) ||
-            website.url.toLowerCase().includes(query) ||
-            website.description.toLowerCase().includes(query)
-        ),
-      }))
-      .filter((category) => category.websites.length > 0);
+    // 搜索筛选
+    if (searchQuery.value) {
+      const query = searchQuery.value.toLowerCase();
+      filtered = filtered
+        .map((category) => ({
+          ...category,
+          websites: category.websites.filter(
+            (website) =>
+              website.name.toLowerCase().includes(query) ||
+              website.url.toLowerCase().includes(query) ||
+              website.description.toLowerCase().includes(query)
+          ),
+        }))
+        .filter((category) => category.websites.length > 0);
+    }
+
+    return filtered;
   });
 
   const filteredWebsites = computed(() => {
