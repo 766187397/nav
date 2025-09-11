@@ -121,32 +121,39 @@
       }
     } catch (error) {
       console.warn("获取favicon.ico失败:", error);
-      
+
       // 尝试从网站HTML中查找link标签中的图标
       try {
-        const response = await axios.get(url, { responseType: "text" });
-        const html = response.data;
-        
+        const response = await axios.get(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, {
+          // responseType: "text",
+          timeout: 5000,
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          },
+        });
+        const html = response.data.contents;
+
         // 使用正则表达式查找包含icon的link标签
-        const iconRegex = /<link[^>]*rel=["'](?:icon|shortcut icon|apple-touch-icon)["'][^>]*href=["']([^"']+)["'][^>]*>/gi;
+        const iconRegex =
+          /<link[^>]*rel=["'](?:icon|shortcut icon|apple-touch-icon)["'][^>]*href=["']([^"']+)["'][^>]*>/gi;
         let match;
-        let bestIconUrl = '';
-        
+        let bestIconUrl = "";
+
         while ((match = iconRegex.exec(html)) !== null) {
           const href = match[1];
           // 优先选择apple-touch-icon（通常尺寸更大更清晰）
-          if (match[0].includes('apple-touch-icon')) {
+          if (match[0].includes("apple-touch-icon")) {
             bestIconUrl = href;
             break;
           }
           bestIconUrl = href;
         }
-        
+
         if (bestIconUrl) {
           // 处理相对路径
           const absoluteIconUrl = new URL(bestIconUrl, url).href;
           const iconResponse = await axios.get(absoluteIconUrl, { responseType: "blob" });
-          
+
           if (iconResponse.status === 200) {
             const blob = iconResponse.data;
             // 转换为base64格式
@@ -165,15 +172,15 @@
   // 生成基于网站名称首字母的SVG图标
   const generateInitialIcon = (name: string): string => {
     // 获取网站名称的第一个字符，如果没有则使用"?"
-    const initial = name.trim().charAt(0).toUpperCase() || '?';
-    
+    const initial = name.trim().charAt(0).toUpperCase() || "?";
+
     // 创建SVG内容
     const svgContent = `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="48" height="48" fill="#F3F4F6"/>
       <circle cx="24" cy="24" r="16" fill="#4F46E5"/>
       <text x="24" y="30" text-anchor="middle" fill="white" font-size="20" font-weight="bold" font-family="Arial, sans-serif">${initial}</text>
     </svg>`;
-    
+
     // 转换为base64
     return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgContent)))}`;
   };
@@ -196,7 +203,7 @@
 
       // 只有在获取到真实网络图标时才保存到本地存储（不保存首字母图标）
       // 首字母图标的base64数据通常以特定格式开头
-      if (!iconUrl.startsWith('data:image/svg+xml;base64,PD94bWwg')) {
+      if (!iconUrl.startsWith("data:image/svg+xml;base64,PD94bWwg")) {
         await localforage.setItem(`icon_${website.url}`, iconUrl);
       }
 

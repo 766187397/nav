@@ -179,8 +179,12 @@
               </button>
 
               <!-- 错误提示 -->
-              <div v-if="saveStatus === 'error'" class="error-message floating-error">❌ {{ errorMessage || '保存失败，请重试' }}</div>
-              <div v-if="deleteStatus === 'error'" class="error-message floating-error">❌ 删除失败，请重试</div>
+              <div v-if="saveStatus === 'error'" class="error-message floating-error">
+                ❌ {{ errorMessage || "保存失败，请重试" }}
+              </div>
+              <div v-if="deleteStatus === 'error'" class="error-message floating-error">
+                ❌ 删除失败，请重试
+              </div>
             </div>
           </form>
         </div>
@@ -663,8 +667,14 @@
 
       // 尝试从网站HTML中查找link标签中的图标
       try {
-        const response = await axios.get(url, { responseType: "text" });
-        const html = response.data;
+        const response = await axios.get(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, {
+          // responseType: "text",
+          timeout: 5000,
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          },
+        });
+        const html = response.data.contents;
 
         // 使用正则表达式查找包含icon的link标签
         const iconRegex =
@@ -762,15 +772,14 @@
   // 获取网站元数据（标题和描述）
   const fetchWebsiteDescription = async (url: string): Promise<{ title: string; description: string }> => {
     try {
-      const response = await axios.get(url, {
-        responseType: "text",
+      const response = await axios.get(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, {
+        // responseType: "text",
         timeout: 5000,
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         },
       });
-
-      const html = response.data;
+      const html = response.data.contents;
       let title = "";
       let description = "";
 
@@ -942,7 +951,7 @@
         }, 2000);
         throw new Error("网站名称不能为空");
       }
-      
+
       if (!editForm.value.url?.trim()) {
         saveStatus.value = "error";
         errorMessage.value = "网站URL不能为空";
@@ -952,7 +961,7 @@
         }, 2000);
         throw new Error("网站URL不能为空");
       }
-      
+
       if (!editForm.value.categoryId) {
         saveStatus.value = "error";
         errorMessage.value = "请选择网站分类";
@@ -962,7 +971,7 @@
         }, 2000);
         throw new Error("请选择网站分类");
       }
-      
+
       // URL格式验证
       try {
         new URL(editForm.value.url);
