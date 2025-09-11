@@ -1845,6 +1845,9 @@
     margin: 0 0 0.5rem 0;
     color: #1f2937;
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .website-url {

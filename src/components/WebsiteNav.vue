@@ -482,6 +482,9 @@
     font-weight: 600;
     color: #1f2937;
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .website-description {
@@ -489,6 +492,9 @@
     font-size: 0.875rem;
     line-height: 1.5;
     margin-bottom: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .website-url {
