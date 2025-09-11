@@ -735,29 +735,31 @@
       const iconUrl = await fetchWebsiteIcon(editForm.value.url, editForm.value.name || "");
       editForm.value.icon = iconUrl;
 
-      // 获取网站描述
-      const description = await fetchWebsiteDescription(editForm.value.url);
-      if (description) {
-        editForm.value.description = description;
-      }
+      // 获取网站元数据
+      const metaData = await fetchWebsiteDescription(editForm.value.url);
+      editForm.value.description = metaData.description;
 
-      // 如果网站名称为空，尝试从URL中提取域名作为名称
-      if (!editForm.value.name) {
-        try {
-          const urlObj = new URL(editForm.value.url);
-          editForm.value.name = urlObj.hostname.replace("www.", "").split(".")[0];
-          editForm.value.name = editForm.value.name.charAt(0).toUpperCase() + editForm.value.name.slice(1);
-        } catch (error) {
-          console.warn("无法从URL提取网站名称:", error);
+      try {
+        // 优先使用网页title
+        if (metaData.title) {
+          editForm.value.name = metaData.title;
+          return;
         }
+
+        // 如果没有获取到title，再尝试从URL提取域名
+        const urlObj = new URL(editForm.value.url);
+        editForm.value.name = urlObj.hostname.replace("www.", "").split(".")[0];
+        editForm.value.name = editForm.value.name.charAt(0).toUpperCase() + editForm.value.name.slice(1);
+      } catch (error) {
+        console.warn("无法提取网站名称:", error);
       }
     } catch (error) {
       console.warn("获取网站元数据失败:", error);
     }
   };
 
-  // 获取网站描述
-  const fetchWebsiteDescription = async (url: string): Promise<string> => {
+  // 获取网站元数据（标题和描述）
+  const fetchWebsiteDescription = async (url: string): Promise<{ title: string; description: string }> => {
     try {
       const response = await axios.get(url, {
         responseType: "text",
@@ -768,46 +770,49 @@
       });
 
       const html = response.data;
+      let title = "";
+      let description = "";
+
+      // 查找网页标题
+      const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+      if (titleMatch && titleMatch[1]) {
+        title = titleMatch[1].trim();
+      }
 
       // 查找meta description
       const descriptionMatch = html.match(
         /<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i
       );
       if (descriptionMatch && descriptionMatch[1]) {
-        return descriptionMatch[1].trim();
+        description = descriptionMatch[1].trim();
       }
 
       // 查找og:description
       const ogDescriptionMatch = html.match(
         /<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["'][^>]*>/i
       );
-      if (ogDescriptionMatch && ogDescriptionMatch[1]) {
-        return ogDescriptionMatch[1].trim();
+      if (ogDescriptionMatch && ogDescriptionMatch[1] && !description) {
+        description = ogDescriptionMatch[1].trim();
       }
 
       // 查找twitter:description
       const twitterDescriptionMatch = html.match(
         /<meta[^>]*name=["']twitter:description["'][^>]*content=["']([^"']*)["'][^>]*>/i
       );
-      if (twitterDescriptionMatch && twitterDescriptionMatch[1]) {
-        return twitterDescriptionMatch[1].trim();
+      if (twitterDescriptionMatch && twitterDescriptionMatch[1] && !description) {
+        description = twitterDescriptionMatch[1].trim();
       }
 
-      // 如果都没有找到，尝试从title或h1中获取
-      const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-      if (titleMatch && titleMatch[1]) {
-        return titleMatch[1].trim();
-      }
-
+      // 如果没有描述，使用h1作为备选
       const h1Match = html.match(/<h1[^>]*>([^<]*)<\/h1>/i);
-      if (h1Match && h1Match[1]) {
-        return h1Match[1].trim();
+      if (h1Match && h1Match[1] && !description) {
+        description = h1Match[1].trim();
       }
 
-      return "";
+      return { title, description };
     } catch (error) {
-      console.warn("获取网站描述失败:", error);
-      return "";
+      console.warn("获取网站元数据失败:", error);
+      return { title: "", description: "" };
     }
   };
 
