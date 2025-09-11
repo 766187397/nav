@@ -233,7 +233,8 @@
                           (website.icon.startsWith('data:') || website.icon.startsWith('http'))
                         "
                         :src="website.icon"
-                        :alt="website.name" />
+                        :alt="website.name"
+                        @error="(event) => handleImageError(event, website)" />
                       <span v-else class="icon-fallback">{{ website.name.charAt(0) }}</span>
                     </div>
                     <div class="website-info">
@@ -436,6 +437,7 @@
   import localforage from "localforage";
   import draggable from "vuedraggable";
   import websitesData from "@/data/websites.json";
+  import axios from "axios";
   import emojisData from "@/data/emojis.json";
   import type { SearchResult } from "@/types/search";
 
@@ -608,6 +610,123 @@
 
     // 由于Vue的计算属性是响应式的，不需要手动触发更新
     // 搜索功能会自动工作
+  };
+
+  interface Website {
+    name: string;
+    url: string;
+    icon: string;
+    description: string;
+  }
+
+  // 图片加载失败处理
+  const handleImageError = async (event: Event, website: Website) => {
+    const img = event.target as HTMLImageElement;
+
+    try {
+      // 首先检查本地存储中是否有缓存的图标
+      const cachedIcon = await localforage.getItem<string>(`icon_${website.url}`);
+
+      if (cachedIcon) {
+        img.src = cachedIcon;
+        return;
+      }
+
+      // 如果没有缓存，尝试获取网站图标
+      const iconUrl = await fetchWebsiteIcon(website.url, website.name);
+
+      // 保存到本地存储
+      await localforage.setItem(`icon_${website.url}`, iconUrl);
+
+      // 更新图片src
+      img.src = iconUrl;
+    } catch (error) {
+      console.error("处理图标加载失败时出错:", error);
+      // 使用网站名称首字母生成的图标作为后备
+      img.src = generateInitialIcon(website.name);
+    }
+  };
+
+  // 获取网站图标
+  const fetchWebsiteIcon = async (url: string, name: string): Promise<string> => {
+    try {
+      const domain = new URL(url).hostname;
+      const iconUrl = `https://${domain}/favicon.ico`;
+
+      // 尝试获取favicon.ico
+      const response = await axios.get(iconUrl, { responseType: "blob" });
+      if (response.status === 200) {
+        const blob = response.data;
+        // 转换为base64格式
+        return await blobToBase64(blob);
+      }
+    } catch (error) {
+      console.warn("获取favicon.ico失败:", error);
+
+      // 尝试从网站HTML中查找link标签中的图标
+      try {
+        const response = await axios.get(url, { responseType: "text" });
+        const html = response.data;
+
+        // 使用正则表达式查找包含icon的link标签
+        const iconRegex =
+          /<link[^>]*rel=["'](?:icon|shortcut icon|apple-touch-icon)["'][^>]*href=["']([^"']+)["'][^>]*>/gi;
+        let match;
+        let bestIconUrl = "";
+
+        while ((match = iconRegex.exec(html)) !== null) {
+          const href = match[1];
+          // 优先选择apple-touch-icon（通常尺寸更大更清晰）
+          if (match[0].includes("apple-touch-icon")) {
+            bestIconUrl = href;
+            break;
+          }
+          bestIconUrl = href;
+        }
+
+        if (bestIconUrl) {
+          // 处理相对路径
+          const absoluteIconUrl = new URL(bestIconUrl, url).href;
+          const iconResponse = await axios.get(absoluteIconUrl, { responseType: "blob" });
+
+          if (iconResponse.status === 200) {
+            const blob = iconResponse.data;
+            // 转换为base64格式
+            return await blobToBase64(blob);
+          }
+        }
+      } catch (linkError) {
+        console.warn("从link标签获取图标失败:", linkError);
+      }
+    }
+
+    // 如果所有方法都失败，使用网站名称首字母生成的图标
+    return generateInitialIcon(name);
+  };
+
+  // 将Blob转换为Base64
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  // 生成基于网站名称首字母的SVG图标
+  const generateInitialIcon = (name: string): string => {
+    // 获取网站名称的第一个字符，如果没有则使用"?"
+    const initial = name.trim().charAt(0).toUpperCase() || "?";
+
+    // 创建SVG内容
+    const svgContent = `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" fill="#F3F4F6"/>
+      <circle cx="24" cy="24" r="16" fill="#4F46E5"/>
+      <text x="24" y="30" text-anchor="middle" fill="white" font-size="20" font-weight="bold" font-family="Arial, sans-serif">${initial}</text>
+    </svg>`;
+
+    // 转换为base64
+    return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgContent)))}`;
   };
 
   const showAllWebsites = () => {
