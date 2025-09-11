@@ -179,8 +179,8 @@
               </button>
 
               <!-- 错误提示 -->
-              <div v-if="saveStatus === 'error'" class="error-message">❌ 保存失败，请重试</div>
-              <div v-if="deleteStatus === 'error'" class="error-message">❌ 删除失败，请重试</div>
+              <div v-if="saveStatus === 'error'" class="error-message floating-error">❌ {{ errorMessage || '保存失败，请重试' }}</div>
+              <div v-if="deleteStatus === 'error'" class="error-message floating-error">❌ 删除失败，请重试</div>
             </div>
           </form>
         </div>
@@ -445,6 +445,7 @@
   const editingWebsite = ref<SearchResult | null>(null);
   const saveStatus = ref<"idle" | "saving" | "success" | "error">("idle");
   const deleteStatus = ref<"idle" | "deleting" | "success" | "error">("idle");
+  const errorMessage = ref<string>("");
   const showResetConfirm = ref<boolean>(false);
   const showImportModal = ref<boolean>(false);
   const importStatus = ref<"idle" | "importing" | "success" | "error">("idle");
@@ -931,6 +932,50 @@
 
   const saveWebsite = async () => {
     try {
+      // 表单验证 - 检查必填字段
+      if (!editForm.value.name?.trim()) {
+        saveStatus.value = "error";
+        errorMessage.value = "网站名称不能为空";
+        setTimeout(() => {
+          saveStatus.value = "idle";
+          errorMessage.value = "";
+        }, 2000);
+        throw new Error("网站名称不能为空");
+      }
+      
+      if (!editForm.value.url?.trim()) {
+        saveStatus.value = "error";
+        errorMessage.value = "网站URL不能为空";
+        setTimeout(() => {
+          saveStatus.value = "idle";
+          errorMessage.value = "";
+        }, 2000);
+        throw new Error("网站URL不能为空");
+      }
+      
+      if (!editForm.value.categoryId) {
+        saveStatus.value = "error";
+        errorMessage.value = "请选择网站分类";
+        setTimeout(() => {
+          saveStatus.value = "idle";
+          errorMessage.value = "";
+        }, 2000);
+        throw new Error("请选择网站分类");
+      }
+      
+      // URL格式验证
+      try {
+        new URL(editForm.value.url);
+      } catch {
+        saveStatus.value = "error";
+        errorMessage.value = "请输入有效的URL地址";
+        setTimeout(() => {
+          saveStatus.value = "idle";
+          errorMessage.value = "";
+        }, 2000);
+        throw new Error("请输入有效的URL地址");
+      }
+
       saveStatus.value = "saving";
 
       // 模拟保存操作（实际项目中这里应该调用API）
@@ -1769,6 +1814,9 @@
     color: #6b7280;
     font-size: 0.875rem;
     line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .website-meta {
@@ -1972,6 +2020,32 @@
     background: #fef2f2;
     border: 1px solid #fecaca;
     border-radius: 6px;
+  }
+
+  /* 悬浮错误提示样式 */
+  .floating-error {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    min-width: 300px;
+    max-width: 80%;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+    animation: slideInDown 0.3s ease-out;
+  }
+
+  @keyframes slideInDown {
+    from {
+      transform: translate(-50%, -100%);
+      opacity: 0;
+    }
+    to {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
   }
 
   /* 加载状态样式 */
