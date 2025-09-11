@@ -64,31 +64,37 @@
 
           <!-- 分类筛选 -->
           <div class="category-filter" v-if="filteredCategories.length > 0">
-            <h4>分类筛选</h4>
-            <div class="category-tags">
-              <div
-                v-for="category in filteredCategories"
-                :key="category.id"
-                :class="['category-tag-wrapper', { active: selectedCategory === category.id }]">
-                <span class="category-tag" @click="toggleCategoryFilter(category.id)">
-                  {{ category.icon }} {{ category.name }}
-                </span>
-                <button
-                  v-if="category.id !== 'default'"
-                  @click.stop="editCategory(category)"
-                  class="category-edit-btn"
-                  title="编辑分类">
-                  ✏️
-                </button>
-                <button
-                  v-if="category.id !== 'default'"
-                  @click.stop="confirmDeleteCategory(category.id)"
-                  class="category-delete-btn"
-                  title="删除分类">
-                  ❌
-                </button>
-              </div>
-            </div>
+            <h4>分类筛选 <small>(拖拽排序)</small></h4>
+            <draggable
+              v-model="categories"
+              tag="div"
+              class="category-tags"
+              item-key="id"
+              @end="onCategoryDragEnd"
+              @start="isDragging = true">
+              <template #item="{ element: category }">
+                <div :class="['category-tag-wrapper', { active: selectedCategory === category.id }]">
+                  <span class="drag-handle" title="拖拽排序">↕️</span>
+                  <span class="category-tag" @click="toggleCategoryFilter(category.id)">
+                    {{ category.icon }} {{ category.name }}
+                  </span>
+                  <button
+                    v-if="category.id !== 'default'"
+                    @click.stop="editCategory(category)"
+                    class="category-edit-btn"
+                    title="编辑分类">
+                    ✏️
+                  </button>
+                  <button
+                    v-if="category.id !== 'default'"
+                    @click.stop="confirmDeleteCategory(category.id)"
+                    class="category-delete-btn"
+                    title="删除分类">
+                    ❌
+                  </button>
+                </div>
+              </template>
+            </draggable>
           </div>
         </nav>
       </div>
@@ -206,38 +212,47 @@
                 <div class="category-count">{{ category.websites.length }} 个网站</div>
               </div>
 
-              <div class="websites-grid">
-                <div
-                  v-for="website in category.websites"
-                  :key="website.name"
-                  class="website-item"
-                  @click="editWebsite({ ...website, category: category.name, categoryIcon: category.icon })">
-                  <div class="website-icon">
-                    <img
-                      v-if="website.icon && website.icon.startsWith('data:')"
-                      :src="website.icon"
-                      :alt="website.name" />
-                    <span v-else class="icon-fallback">{{ website.name.charAt(0) }}</span>
-                  </div>
-                  <div class="website-info">
-                    <h4>{{ website.name }}</h4>
-                    <p class="website-url">{{ website.url }}</p>
-                    <p class="website-desc">{{ website.description }}</p>
-                    <div class="website-meta">
-                      <span class="category">{{ category.name }}</span>
+              <draggable
+                v-model="category.websites"
+                tag="div"
+                class="websites-grid"
+                item-key="name"
+                @end="onWebsiteDragEnd(category.id)"
+                @start="isDragging = true">
+                <template #item="{ element: website }">
+                  <div
+                    class="website-item"
+                    @click="
+                      editWebsite({ ...website, category: category.name, categoryIcon: category.icon })
+                    ">
+                    <div class="drag-handle" title="拖拽排序">↕️</div>
+                    <div class="website-icon">
+                      <img
+                        v-if="website.icon && website.icon.startsWith('data:')"
+                        :src="website.icon"
+                        :alt="website.name" />
+                      <span v-else class="icon-fallback">{{ website.name.charAt(0) }}</span>
+                    </div>
+                    <div class="website-info">
+                      <h4>{{ website.name }}</h4>
+                      <p class="website-url">{{ website.url }}</p>
+                      <p class="website-desc">{{ website.description }}</p>
+                      <div class="website-meta">
+                        <span class="category">{{ category.name }}</span>
+                      </div>
+                    </div>
+                    <div class="website-actions">
+                      <button
+                        class="btn-edit"
+                        @click.stop="
+                          editWebsite({ ...website, category: category.name, categoryIcon: category.icon })
+                        ">
+                        ✏️
+                      </button>
                     </div>
                   </div>
-                  <div class="website-actions">
-                    <button
-                      class="btn-edit"
-                      @click.stop="
-                        editWebsite({ ...website, category: category.name, categoryIcon: category.icon })
-                      ">
-                      ✏️
-                    </button>
-                  </div>
-                </div>
-              </div>
+                </template>
+              </draggable>
             </div>
           </div>
         </div>
@@ -416,6 +431,7 @@
 <script setup lang="ts">
   import { ref, computed, onMounted } from "vue";
   import localforage from "localforage";
+  import draggable from "vuedraggable";
   import websitesData from "@/data/websites.json";
   import emojisData from "@/data/emojis.json";
   import type { SearchResult } from "@/types/search";
@@ -448,6 +464,9 @@
   const showEditCategoryModal = ref<boolean>(false);
   const editingCategory = ref<(typeof websitesData.categories)[number] | null>(null);
   const editCategoryStatus = ref<"idle" | "saving" | "success" | "error">("idle");
+
+  // 拖拽排序相关状态
+  const isDragging = ref<boolean>(false);
 
   interface EditForm {
     name: string;
@@ -489,19 +508,19 @@
     if (!searchQuery.value) {
       return categories.value;
     }
-    
+
     const query = searchQuery.value.toLowerCase();
     return categories.value
-      .map(category => ({
+      .map((category) => ({
         ...category,
         websites: category.websites.filter(
-          website =>
+          (website) =>
             website.name.toLowerCase().includes(query) ||
             website.url.toLowerCase().includes(query) ||
             website.description.toLowerCase().includes(query)
-        )
+        ),
       }))
-      .filter(category => category.websites.length > 0);
+      .filter((category) => category.websites.length > 0);
   });
 
   const filteredWebsites = computed(() => {
@@ -578,12 +597,12 @@
     // 触发搜索功能
     // 搜索逻辑已经在filteredCategories计算属性中自动处理
     // 这里主要提供用户反馈和确保UI更新
-    
+
     // 添加搜索反馈动画或状态（可选）
     if (searchQuery.value.trim()) {
       console.log("搜索关键词:", searchQuery.value);
     }
-    
+
     // 由于Vue的计算属性是响应式的，不需要手动触发更新
     // 搜索功能会自动工作
   };
@@ -595,6 +614,48 @@
 
   const toggleCategoryFilter = (categoryId: string) => {
     selectedCategory.value = selectedCategory.value === categoryId ? "" : categoryId;
+  };
+
+  // 分类拖拽排序
+  const onCategoryDragEnd = () => {
+    isDragging.value = false;
+    saveCategoriesOrder();
+  };
+
+  // 网站拖拽排序
+  const onWebsiteDragEnd = (categoryId: string) => {
+    isDragging.value = false;
+    saveWebsitesOrder(categoryId);
+  };
+
+  // 保存分类排序
+  const saveCategoriesOrder = async () => {
+    try {
+      // 深度克隆以避免循环引用
+      const dataToSave = JSON.parse(JSON.stringify(categories.value));
+      await localforage.setItem("websiteCategories", dataToSave);
+      console.log("分类排序已保存");
+
+      // 重新加载数据以确保UI更新
+      loadWebsites();
+    } catch (error) {
+      console.error("保存分类排序失败:", error);
+    }
+  };
+
+  // 保存网站排序
+  const saveWebsitesOrder = async (categoryId: string) => {
+    try {
+      // 深度克隆以避免循环引用
+      const dataToSave = JSON.parse(JSON.stringify(categories.value));
+      await localforage.setItem("websiteCategories", dataToSave);
+      console.log(`分类 ${categoryId} 的网站排序已保存`, dataToSave);
+
+      // 重新加载数据以确保UI更新
+      loadWebsites();
+    } catch (error) {
+      console.error("保存网站排序失败:", error);
+    }
   };
 
   const addNewWebsite = () => {
@@ -777,7 +838,31 @@
   // 生命周期
   onMounted(() => {
     loadWebsites();
+
+    // 测试 localforage 是否正常工作
+    testLocalForage();
   });
+
+  // 测试 localforage 功能
+  const testLocalForage = async () => {
+    try {
+      console.log("测试 localforage 功能...");
+
+      // 测试写入
+      await localforage.setItem("test_key", "test_value");
+      console.log("测试数据写入成功");
+
+      // 测试读取
+      const testValue = await localforage.getItem("test_key");
+      console.log("测试数据读取结果:", testValue);
+
+      // 检查是否有保存的数据
+      const savedData = await localforage.getItem("websiteCategories");
+      console.log("已保存的数据:", savedData);
+    } catch (error) {
+      console.error("localforage 测试失败:", error);
+    }
+  };
 
   // 导出数据为JSON文件
   const exportData = async () => {
@@ -1790,5 +1875,54 @@
 
   .add-category-modal .btn-primary:hover {
     background: #047857;
+  }
+
+  /* 拖拽排序样式 */
+  .sortable-ghost {
+    opacity: 0.5;
+    background: #f3f4f6;
+  }
+
+  .sortable-chosen {
+    background: #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .sortable-drag {
+    opacity: 0.9;
+    transform: rotate(5deg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  /* 拖拽手柄样式 */
+  .drag-handle {
+    cursor: move;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+    margin-right: 0.5rem;
+  }
+
+  .drag-handle:hover {
+    opacity: 1;
+  }
+
+  /* 分类拖拽样式 */
+  .category-tags .sortable-ghost .category-tag-wrapper {
+    opacity: 0.3;
+  }
+
+  .category-tags .sortable-chosen .category-tag-wrapper {
+    background: #e5e7eb;
+    border-radius: 8px;
+  }
+
+  /* 网站拖拽样式 */
+  .websites-grid .sortable-ghost .website-item {
+    opacity: 0.3;
+  }
+
+  .websites-grid .sortable-chosen .website-item {
+    background: #e5e7eb;
+    border-radius: 12px;
   }
 </style>
