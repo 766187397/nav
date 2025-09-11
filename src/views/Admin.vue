@@ -633,7 +633,6 @@
 
       // 如果没有缓存，尝试获取网站图标
       const iconUrl = await fetchWebsiteIcon(website.url, website.name);
-      console.log("iconUrl", iconUrl);
       // 首字母图标的base64数据通常以特定格式开头
       if (!iconUrl.startsWith("data:image/svg+xml;base64,PD94bWwg")) {
         await updateWebsiteIconInData(website.url, iconUrl);
@@ -652,7 +651,7 @@
   const fetchWebsiteIcon = async (url: string, name: string): Promise<string> => {
     try {
       const domain = new URL(url).hostname;
-      const iconUrl = `https://${domain}/favicon.ico`;
+      const iconUrl = `https://corsproxy.io/https://${domain}/favicon.ico`;
 
       // 尝试获取favicon.ico
       const response = await axios.get(iconUrl, { responseType: "blob" });
