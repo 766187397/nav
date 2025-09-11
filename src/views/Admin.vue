@@ -118,12 +118,17 @@
         <div class="edit-form" v-if="isEditing">
           <form @submit.prevent="saveWebsite">
             <div class="form-group">
-              <label>网站名称</label>
-              <input v-model="editForm.name" type="text" placeholder="输入网站名称" required />
+              <label>网站URL</label>
+              <input
+                v-model="editForm.url"
+                type="url"
+                placeholder="https://example.com"
+                @blur="fetchWebsiteMeta"
+                required />
             </div>
             <div class="form-group">
-              <label>网站URL</label>
-              <input v-model="editForm.url" type="url" placeholder="https://example.com" required />
+              <label>网站名称</label>
+              <input v-model="editForm.name" type="text" placeholder="输入网站名称" required />
             </div>
             <div class="form-group">
               <label>网站图标URL</label>
@@ -721,6 +726,91 @@
     return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgContent)))}`;
   };
 
+  // 获取网站元数据（图标和描述）
+  const fetchWebsiteMeta = async () => {
+    if (!editForm.value.url) return;
+
+    try {
+      // 获取网站图标
+      const iconUrl = await fetchWebsiteIcon(editForm.value.url, editForm.value.name || "");
+      editForm.value.icon = iconUrl;
+
+      // 获取网站描述
+      const description = await fetchWebsiteDescription(editForm.value.url);
+      if (description) {
+        editForm.value.description = description;
+      }
+
+      // 如果网站名称为空，尝试从URL中提取域名作为名称
+      if (!editForm.value.name) {
+        try {
+          const urlObj = new URL(editForm.value.url);
+          editForm.value.name = urlObj.hostname.replace("www.", "").split(".")[0];
+          editForm.value.name = editForm.value.name.charAt(0).toUpperCase() + editForm.value.name.slice(1);
+        } catch (error) {
+          console.warn("无法从URL提取网站名称:", error);
+        }
+      }
+    } catch (error) {
+      console.warn("获取网站元数据失败:", error);
+    }
+  };
+
+  // 获取网站描述
+  const fetchWebsiteDescription = async (url: string): Promise<string> => {
+    try {
+      const response = await axios.get(url, {
+        responseType: "text",
+        timeout: 5000,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+      });
+
+      const html = response.data;
+
+      // 查找meta description
+      const descriptionMatch = html.match(
+        /<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i
+      );
+      if (descriptionMatch && descriptionMatch[1]) {
+        return descriptionMatch[1].trim();
+      }
+
+      // 查找og:description
+      const ogDescriptionMatch = html.match(
+        /<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["'][^>]*>/i
+      );
+      if (ogDescriptionMatch && ogDescriptionMatch[1]) {
+        return ogDescriptionMatch[1].trim();
+      }
+
+      // 查找twitter:description
+      const twitterDescriptionMatch = html.match(
+        /<meta[^>]*name=["']twitter:description["'][^>]*content=["']([^"']*)["'][^>]*>/i
+      );
+      if (twitterDescriptionMatch && twitterDescriptionMatch[1]) {
+        return twitterDescriptionMatch[1].trim();
+      }
+
+      // 如果都没有找到，尝试从title或h1中获取
+      const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+      if (titleMatch && titleMatch[1]) {
+        return titleMatch[1].trim();
+      }
+
+      const h1Match = html.match(/<h1[^>]*>([^<]*)<\/h1>/i);
+      if (h1Match && h1Match[1]) {
+        return h1Match[1].trim();
+      }
+
+      return "";
+    } catch (error) {
+      console.warn("获取网站描述失败:", error);
+      return "";
+    }
+  };
+
   const showAllWebsites = () => {
     searchQuery.value = "";
     selectedCategory.value = "";
@@ -1304,11 +1394,15 @@
   }
 
   .admin-sidebar {
-    width: 280px;
+    width: 330px;
+    height: 100vh;
     background: white;
     border-right: 1px solid #e5e7eb;
     padding: 1.5rem;
+    box-sizing: border-box;
     overflow-y: auto;
+    position: fixed;
+    z-index: 999;
   }
 
   .admin-nav h3 {
@@ -1466,6 +1560,7 @@
     flex: 1;
     padding: 2rem;
     overflow-y: auto;
+    margin-left: 330px;
   }
 
   .admin-toolbar {
