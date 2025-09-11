@@ -124,7 +124,7 @@
 
       // 尝试从网站HTML中查找link标签中的图标
       try {
-        const response = await axios.get(`https://corsproxy.io/?url=${url}`, {
+        const response = await axios.get(`https://corsproxy.io/${url}`, {
           // responseType: "text",
           timeout: 5000,
           headers: {
