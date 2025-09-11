@@ -228,7 +228,10 @@
                     <div class="drag-handle" title="拖拽排序">↕️</div>
                     <div class="website-icon">
                       <img
-                        v-if="website.icon && website.icon.startsWith('data:')"
+                        v-if="
+                          website.icon &&
+                          (website.icon.startsWith('data:') || website.icon.startsWith('http'))
+                        "
                         :src="website.icon"
                         :alt="website.name" />
                       <span v-else class="icon-fallback">{{ website.name.charAt(0) }}</span>
