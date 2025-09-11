@@ -50,7 +50,7 @@
                 :src="website.icon"
                 :alt="website.name"
                 class="website-icon"
-                @error="(event) => handleImageError(event, website)" />
+                @error.once="(event) => handleImageError(event, website)" />
               <h3 class="website-name">{{ website.name }}</h3>
             </div>
             <p class="website-description">{{ website.description }}</p>

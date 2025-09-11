@@ -233,7 +233,7 @@
                       <img
                         :src="website.icon"
                         :alt="website.name"
-                        @error="(event) => handleImageError(event, website)" />
+                        @error.once="(event) => handleImageError(event, website)" />
                     </div>
                     <div class="website-info">
                       <h4>{{ website.name }}</h4>
@@ -701,7 +701,9 @@
             // 其他相对路径（如../或./），使用URL构造函数处理
             absoluteIconUrl = new URL(bestIconUrl, url).href;
           }
-          const iconResponse = await axios.get(`https://corsproxy.io/${absoluteIconUrl}`, { responseType: "blob" });
+          const iconResponse = await axios.get(`https://corsproxy.io/${absoluteIconUrl}`, {
+            responseType: "blob",
+          });
 
           if (iconResponse.status === 200) {
             const blob = iconResponse.data;
