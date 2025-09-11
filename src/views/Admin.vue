@@ -633,11 +633,10 @@
 
       // 如果没有缓存，尝试获取网站图标
       const iconUrl = await fetchWebsiteIcon(website.url, website.name);
-
-      // 只有在获取到真实网络图标时才保存到本地存储（不保存首字母图标）
+      console.log("iconUrl", iconUrl);
       // 首字母图标的base64数据通常以特定格式开头
       if (!iconUrl.startsWith("data:image/svg+xml;base64,PD94bWwg")) {
-        await localforage.setItem(`icon_${website.url}`, iconUrl);
+        await updateWebsiteIconInData(website.url, iconUrl);
       }
 
       // 更新图片src
@@ -917,8 +916,31 @@
     showResetConfirm.value = false;
   };
 
+  // 更新网站图标到websiteCategories数据中
+  const updateWebsiteIconInData = async (websiteUrl: string, iconUrl: string) => {
+    try {
+      // 查找包含该网站的分类
+      for (const category of categories.value) {
+        const website = category.websites.find((w) => w.url === websiteUrl);
+        if (website) {
+          // 更新图标
+          website.icon = iconUrl;
+
+          // 保存到 localforage - 需要深度克隆以避免循环引用
+          const dataToSave = JSON.parse(JSON.stringify(categories.value));
+          await localforage.setItem("websiteCategories", dataToSave);
+
+          console.log(`网站 ${websiteUrl} 的图标已更新到数据中`);
+          break;
+        }
+      }
+    } catch (error) {
+      console.error("更新网站图标到数据失败:", error);
+    }
+  };
+
   // 将图片URL转换为base64
-  const convertImageToBase64 = async (url: string): Promise<string> => {
+  const convertImageToBase64 = async (url: string, websiteUrl?: string): Promise<string> => {
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -928,7 +950,16 @@
       const blob = await response.blob();
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
+        reader.onloadend = async () => {
+          const base64Icon = reader.result as string;
+
+          // 如果提供了websiteUrl，将图标更新到数据中
+          if (websiteUrl && !base64Icon.startsWith("data:image/svg+xml;base64,PD94bWwg")) {
+            await updateWebsiteIconInData(websiteUrl, base64Icon);
+          }
+
+          resolve(base64Icon);
+        };
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
@@ -997,7 +1028,7 @@
         editForm.value.icon.startsWith("http") &&
         !editForm.value.icon.startsWith("data:")
       ) {
-        finalIcon = await convertImageToBase64(editForm.value.icon);
+        finalIcon = await convertImageToBase64(editForm.value.icon, editForm.value.url);
       }
 
       // 实际更新本地数据
