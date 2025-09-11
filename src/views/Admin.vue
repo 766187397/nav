@@ -691,9 +691,17 @@
         }
 
         if (bestIconUrl) {
-          // 处理相对路径
-          const absoluteIconUrl = new URL(bestIconUrl, url).href;
-          const iconResponse = await axios.get(absoluteIconUrl, { responseType: "blob" });
+          // 处理相对路径：如果是相对路径（以/开头），需要拼接URL前缀
+          let absoluteIconUrl = bestIconUrl;
+          if (bestIconUrl.startsWith("/")) {
+            // 相对路径，拼接域名
+            const domain = new URL(url).origin;
+            absoluteIconUrl = domain + bestIconUrl;
+          } else if (!bestIconUrl.startsWith("http")) {
+            // 其他相对路径（如../或./），使用URL构造函数处理
+            absoluteIconUrl = new URL(bestIconUrl, url).href;
+          }
+          const iconResponse = await axios.get(`https://corsproxy.io/${absoluteIconUrl}`, { responseType: "blob" });
 
           if (iconResponse.status === 200) {
             const blob = iconResponse.data;
