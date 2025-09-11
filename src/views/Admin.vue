@@ -635,14 +635,17 @@
       // 如果没有缓存，尝试获取网站图标
       const iconUrl = await fetchWebsiteIcon(website.url, website.name);
 
-      // 保存到本地存储
-      await localforage.setItem(`icon_${website.url}`, iconUrl);
+      // 只有在获取到真实网络图标时才保存到本地存储（不保存首字母图标）
+      // 首字母图标的base64数据通常以特定格式开头
+      if (!iconUrl.startsWith('data:image/svg+xml;base64,PD94bWwg')) {
+        await localforage.setItem(`icon_${website.url}`, iconUrl);
+      }
 
       // 更新图片src
       img.src = iconUrl;
     } catch (error) {
       console.error("处理图标加载失败时出错:", error);
-      // 使用网站名称首字母生成的图标作为后备
+      // 使用网站名称首字母生成的图标作为后备（不保存到本地存储）
       img.src = generateInitialIcon(website.name);
     }
   };
