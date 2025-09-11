@@ -124,7 +124,7 @@
 
       // 尝试从网站HTML中查找link标签中的图标
       try {
-        const response = await axios.get(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, {
+        const response = await axios.get(`https://corsproxy.io/${encodeURIComponent(url)}`, {
           // responseType: "text",
           timeout: 5000,
           headers: {
