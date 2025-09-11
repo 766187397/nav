@@ -1162,6 +1162,7 @@ const deleteCategory = async () => {
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
