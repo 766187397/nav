@@ -113,7 +113,7 @@
       const iconUrl = `https://corsproxy.io/https://${domain}/favicon.ico`;
 
       // 尝试获取favicon.ico
-      const response = await axios.get(iconUrl, { responseType: "blob" });
+      const response = await axios.get(iconUrl, { responseType: "blob", timeout: 5000 });
       if (response.status === 200) {
         const blob = response.data;
         // 转换为base64格式
@@ -160,7 +160,10 @@
             // 其他相对路径（如../或./），使用URL构造函数处理
             absoluteIconUrl = new URL(bestIconUrl, url).href;
           }
-          const iconResponse = await axios.get(`https://corsproxy.io/${absoluteIconUrl}`, { responseType: "blob" });
+          const iconResponse = await axios.get(`https://corsproxy.io/${absoluteIconUrl}`, {
+            responseType: "blob",
+            timeout: 5000,
+          });
 
           if (iconResponse.status === 200) {
             const blob = iconResponse.data;
