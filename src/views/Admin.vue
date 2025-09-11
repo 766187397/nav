@@ -228,14 +228,9 @@
                     <div class="drag-handle" title="拖拽排序">↕️</div>
                     <div class="website-icon">
                       <img
-                        v-if="
-                          website.icon &&
-                          (website.icon.startsWith('data:') || website.icon.startsWith('http'))
-                        "
                         :src="website.icon"
                         :alt="website.name"
                         @error="(event) => handleImageError(event, website)" />
-                      <span v-else class="icon-fallback">{{ website.name.charAt(0) }}</span>
                     </div>
                     <div class="website-info">
                       <h4>{{ website.name }}</h4>
@@ -637,7 +632,7 @@
 
       // 只有在获取到真实网络图标时才保存到本地存储（不保存首字母图标）
       // 首字母图标的base64数据通常以特定格式开头
-      if (!iconUrl.startsWith('data:image/svg+xml;base64,PD94bWwg')) {
+      if (!iconUrl.startsWith("data:image/svg+xml;base64,PD94bWwg")) {
         await localforage.setItem(`icon_${website.url}`, iconUrl);
       }
 
