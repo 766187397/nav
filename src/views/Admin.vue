@@ -44,7 +44,7 @@
               @start="isDragging = true">
               <template #item="{ element: category }">
                 <div :class="['category-tag-wrapper', { active: selectedCategory === category.id }]">
-                  <span class="drag-handle" title="拖拽排序">↕️</span>
+                  <!-- <span class="drag-handle" title="拖拽排序">↕️</span> -->
                   <span class="category-tag" @click="toggleCategoryFilter(category.id)">
                     {{ category.icon }} {{ category.name }}
                   </span>
@@ -228,7 +228,7 @@
                     @click="
                       editWebsite({ ...website, category: category.name, categoryIcon: category.icon })
                     ">
-                    <div class="drag-handle" title="拖拽排序">↕️</div>
+                    <!-- <div class="drag-handle" title="拖拽排序">↕️</div> -->
                     <div class="website-icon">
                       <img
                         :src="website.icon"
@@ -1141,31 +1141,7 @@
   // 生命周期
   onMounted(() => {
     loadWebsites();
-
-    // 测试 localforage 是否正常工作
-    testLocalForage();
   });
-
-  // 测试 localforage 功能
-  const testLocalForage = async () => {
-    try {
-      console.log("测试 localforage 功能...");
-
-      // 测试写入
-      await localforage.setItem("test_key", "test_value");
-      console.log("测试数据写入成功");
-
-      // 测试读取
-      const testValue = await localforage.getItem("test_key");
-      console.log("测试数据读取结果:", testValue);
-
-      // 检查是否有保存的数据
-      const savedData = await localforage.getItem("websiteCategories");
-      console.log("已保存的数据:", savedData);
-    } catch (error) {
-      console.error("localforage 测试失败:", error);
-    }
-  };
 
   // 导出数据为JSON文件
   const exportData = async () => {
