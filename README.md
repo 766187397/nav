@@ -9,17 +9,27 @@
 - **多引擎支持**: 百度、必应、谷歌搜索引擎切换
 - **热门搜索建议**: 智能推荐热门搜索关键词
 - **实时搜索**: 输入时实时显示搜索结果
+- **搜索历史**: 自动保存搜索记录
 
 ### 🗂️ 网站分类
 - **分类导航**: 左侧锚点导航快速定位
 - **分类图标**: 每个分类都有独特的图标标识
 - **响应式设计**: 完美适配桌面和移动设备
+- **拖拽排序**: 支持分类和网站的拖拽排序
+- **本地存储**: 排序结果自动保存到本地
 
 ### 🎨 界面设计
 - **现代化UI**: 采用现代设计风格
 - **平滑动画**: 流畅的过渡效果和交互
 - **深色/浅色**: 优雅的色彩方案
 - **图标缓存**: 自动缓存网站图标提升加载速度
+- **管理界面**: 完整的后台管理功能
+
+### ⚙️ 管理功能
+- **网站管理**: 添加、编辑、删除网站
+- **分类管理**: 管理网站分类
+- **数据导入导出**: 支持JSON数据导入导出
+- **数据重置**: 一键重置到初始数据
 
 ## 🛠️ 技术栈
 
@@ -74,7 +84,7 @@
 
 ### 部署到生产环境
 
-#### 静态部署 (推荐)
+#### 静态部署
 ```bash
 # 构建生产版本
 npm run build
@@ -83,20 +93,14 @@ npm run build
 # 构建文件位于 dist/ 目录
 ```
 
-#### Docker 部署
-```dockerfile
-FROM node:16-alpine as builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
+#### 其他部署方式
+项目支持部署到各种静态文件托管服务：
+- GitHub Pages
+- Netlify
+- Vercel
+- 阿里云OSS
+- 腾讯云COS
+- 其他CDN服务
 
 ## 📖 使用说明
 
@@ -152,19 +156,27 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ```
 src/
-├── components/          # 组件目录
-│   ├── SearchEngine.vue # 搜索组件
-│   └── WebsiteNav.vue  # 网站导航组件
-├── data/               # 数据目录
-│   └── websites.json  # 网站数据
-├── types/              # 类型定义
-│   └── search.ts       # 搜索相关类型
-├── utils/              # 工具函数
-│   ├── searchUtils.ts  # 搜索工具
-│   └── tool.ts         # 通用工具
-├── views/              # 页面视图
-│   └── home/           # 首页
-└── main.ts            # 应用入口
+├── components/           # 组件目录
+│   ├── SearchEngine.vue  # 搜索组件
+│   └── WebsiteNav.vue    # 网站导航组件
+├── data/                # 数据目录
+│   ├── emojis.json      # 表情符号数据
+│   └── websites.json    # 网站数据
+├── types/               # 类型定义
+│   └── search.ts        # 搜索相关类型
+├── utils/               # 工具函数
+│   └── tool.ts          # 通用工具
+├── views/               # 页面视图
+│   ├── Admin.vue        # 管理界面
+│   ├── Websites.vue     # 网站展示页面
+│   └── home/            # 首页
+├── stores/              # 状态管理
+│   └── counter.ts       # Pinia状态示例
+├── router/              # 路由配置
+│   └── index.ts         # 路由定义
+├── assets/              # 静态资源
+├── App.vue              # 根组件
+└── main.ts              # 应用入口
 ```
 
 ## 🔧 开发指南
