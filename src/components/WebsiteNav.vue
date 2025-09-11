@@ -131,7 +131,7 @@
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
           },
         });
-        const html = response.data.contents;
+        const html = response.data;
 
         // 使用正则表达式查找包含icon的link标签
         const iconRegex =
