@@ -181,55 +181,64 @@
         </div>
 
         <!-- 网站列表 -->
-        <div class="website-list" v-else>
+        <div v-else class="website-list">
           <div class="list-header">
-            <span class="total-count"> 共 {{ filteredWebsites.length }} 个网站 </span>
-            <div class="search-status" v-if="searchQuery">搜索: "{{ searchQuery }}"</div>
+            <h3>网站列表</h3>
+            <div class="total-count">共 {{ filteredWebsites.length }} 个网站</div>
+            <div v-if="searchQuery" class="search-status">搜索到 {{ filteredWebsites.length }} 个结果</div>
           </div>
 
-          <div class="websites-grid">
-            <div
-              v-for="website in filteredWebsites"
-              :key="website.name + website.url"
-              class="website-item editable"
-              @click="editWebsite(website)">
-              <div class="website-icon">
-                <img
-                  :src="website.icon"
-                  :alt="website.name"
-                  @error="
-                    (e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (target) {
-                        target.style.display = 'none';
-                      }
-                    }
-                  " />
-                <span v-if="!website.icon" class="icon-fallback">
-                  {{ website.name.charAt(0) }}
-                </span>
+          <div v-if="filteredWebsites.length === 0" class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h3>没有找到网站</h3>
+            <p v-if="searchQuery">请尝试其他搜索关键词</p>
+            <p v-else>当前没有网站数据</p>
+          </div>
+
+          <div v-else>
+            <!-- 按分类分组显示 -->
+            <div v-for="category in filteredCategories" :key="category.id" class="category-section">
+              <div class="category-header">
+                <h4 class="category-title">
+                  <span class="title-icon">{{ category.icon }}</span>
+                  {{ category.name }}
+                </h4>
+                <div class="category-count">{{ category.websites.length }} 个网站</div>
               </div>
-              <div class="website-info">
-                <h4>{{ website.name }}</h4>
-                <p class="website-url">{{ website.url }}</p>
-                <p class="website-desc">{{ website.description }}</p>
-                <div class="website-meta">
-                  <span class="category">
-                    {{ getCategoryIcon(website.category) }} {{ website.category }}
-                  </span>
+
+              <div class="websites-grid">
+                <div
+                  v-for="website in category.websites"
+                  :key="website.name"
+                  class="website-item"
+                  @click="editWebsite({ ...website, category: category.name, categoryIcon: category.icon })">
+                  <div class="website-icon">
+                    <img
+                      v-if="website.icon && website.icon.startsWith('data:')"
+                      :src="website.icon"
+                      :alt="website.name" />
+                    <span v-else class="icon-fallback">{{ website.name.charAt(0) }}</span>
+                  </div>
+                  <div class="website-info">
+                    <h4>{{ website.name }}</h4>
+                    <p class="website-url">{{ website.url }}</p>
+                    <p class="website-desc">{{ website.description }}</p>
+                    <div class="website-meta">
+                      <span class="category">{{ category.name }}</span>
+                    </div>
+                  </div>
+                  <div class="website-actions">
+                    <button
+                      class="btn-edit"
+                      @click.stop="
+                        editWebsite({ ...website, category: category.name, categoryIcon: category.icon })
+                      ">
+                      ✏️
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div class="website-actions">
-                <button @click.stop="editWebsite(website)" class="btn-edit">✏️</button>
-              </div>
             </div>
-          </div>
-
-          <div class="empty-state" v-if="filteredWebsites.length === 0">
-            <div class="empty-icon">📭</div>
-            <h3>暂无网站数据</h3>
-            <p>点击"添加网站"按钮开始添加第一个网站</p>
-            <button @click="addNewWebsite" class="btn btn-primary">➕ 添加网站</button>
           </div>
         </div>
       </div>
@@ -437,7 +446,7 @@
 
   // 编辑分类相关状态
   const showEditCategoryModal = ref<boolean>(false);
-  const editingCategory = ref<typeof websitesData.categories[number] | null>(null);
+  const editingCategory = ref<(typeof websitesData.categories)[number] | null>(null);
   const editCategoryStatus = ref<"idle" | "saving" | "success" | "error">("idle");
 
   interface EditForm {
@@ -477,7 +486,22 @@
 
   // 计算属性
   const filteredCategories = computed(() => {
-    return categories.value;
+    if (!searchQuery.value) {
+      return categories.value;
+    }
+    
+    const query = searchQuery.value.toLowerCase();
+    return categories.value
+      .map(category => ({
+        ...category,
+        websites: category.websites.filter(
+          website =>
+            website.name.toLowerCase().includes(query) ||
+            website.url.toLowerCase().includes(query) ||
+            website.description.toLowerCase().includes(query)
+        )
+      }))
+      .filter(category => category.websites.length > 0);
   });
 
   const filteredWebsites = computed(() => {
@@ -550,14 +574,18 @@
     }
   };
 
-  const getCategoryIcon = (categoryName: string) => {
-    const category = categories.value.find((c) => c.name === categoryName);
-    return category ? category.icon : "📁";
-  };
-
   const handleAdminSearch = () => {
-    // 直接使用searchQuery.value进行搜索，不需要参数
-    // 搜索逻辑已经在filteredWebsites计算属性中处理
+    // 触发搜索功能
+    // 搜索逻辑已经在filteredCategories计算属性中自动处理
+    // 这里主要提供用户反馈和确保UI更新
+    
+    // 添加搜索反馈动画或状态（可选）
+    if (searchQuery.value.trim()) {
+      console.log("搜索关键词:", searchQuery.value);
+    }
+    
+    // 由于Vue的计算属性是响应式的，不需要手动触发更新
+    // 搜索功能会自动工作
   };
 
   const showAllWebsites = () => {
@@ -936,7 +964,7 @@
     alert("批量编辑分类功能开发中...");
   };
 
-  const editCategory = (category: typeof websitesData.categories[number]) => {
+  const editCategory = (category: (typeof websitesData.categories)[number]) => {
     editingCategory.value = category;
     editCategoryForm.value = {
       name: category.name,
@@ -1456,6 +1484,40 @@
   .category {
     color: #6b7280;
     font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  /* 分类标题样式 */
+  .category-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  .category-title {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 1.25rem;
+  }
+
+  .title-icon {
+    margin-right: 0.75rem;
+    font-size: 1.5rem;
+  }
+
+  .category-count {
+    color: #6b7280;
+    font-size: 0.875rem;
     font-weight: 500;
   }
 
