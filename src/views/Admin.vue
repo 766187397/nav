@@ -30,12 +30,6 @@
                 新增分类
               </a>
             </li>
-            <li>
-              <a href="#" class="nav-link" @click.prevent="openEditCategoriesModal">
-                <span class="nav-icon">✏️</span>
-                编辑分类
-              </a>
-            </li>
           </ul>
 
           <!-- 分类筛选 -->
@@ -1161,12 +1155,6 @@
       name: "",
       icon: "",
     };
-  };
-
-  // 编辑分类相关方法
-  const openEditCategoriesModal = () => {
-    // 可以在这里实现批量编辑分类的界面
-    alert("批量编辑分类功能开发中...");
   };
 
   const editCategory = (category: (typeof websitesData.categories)[number]) => {
