@@ -1054,18 +1054,39 @@
 
       // 实际更新本地数据
       if (editingWebsite.value) {
-        // 编辑现有网站
-        const category = categories.value.find((c) => c.id === editForm.value.categoryId);
-        if (category) {
-          const websiteIndex = category.websites.findIndex((w) => w.name === editingWebsite.value?.name);
-          if (websiteIndex !== -1) {
-            // 更新现有网站
-            category.websites[websiteIndex] = {
+        // 编辑现有网站 - 处理分类变更
+        const oldCategory = categories.value.find((c) => 
+          c.websites.some((w) => w.name === editingWebsite.value?.name)
+        );
+        const newCategory = categories.value.find((c) => c.id === editForm.value.categoryId);
+        
+        if (oldCategory && newCategory) {
+          // 如果分类发生了变化
+          if (oldCategory.id !== newCategory.id) {
+            // 从原分类中移除网站
+            const websiteIndex = oldCategory.websites.findIndex((w) => w.name === editingWebsite.value?.name);
+            if (websiteIndex !== -1) {
+              oldCategory.websites.splice(websiteIndex, 1);
+            }
+            
+            // 添加到新分类
+            newCategory.websites.push({
               name: editForm.value.name,
               url: editForm.value.url,
               icon: finalIcon,
               description: editForm.value.description,
-            };
+            });
+          } else {
+            // 分类未变，只更新网站信息
+            const websiteIndex = oldCategory.websites.findIndex((w) => w.name === editingWebsite.value?.name);
+            if (websiteIndex !== -1) {
+              oldCategory.websites[websiteIndex] = {
+                name: editForm.value.name,
+                url: editForm.value.url,
+                icon: finalIcon,
+                description: editForm.value.description,
+              };
+            }
           }
         }
       } else {
