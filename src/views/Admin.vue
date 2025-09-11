@@ -1,29 +1,5 @@
 <template>
   <div class="admin-container">
-    <!-- 顶部搜索区域 -->
-    <div class="admin-header">
-      <div class="search-container">
-        <div class="search-box">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="搜索网站进行编辑..."
-            @keyup.enter="handleAdminSearch"
-            class="search-input" />
-          <button @click="handleAdminSearch" class="search-button">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
     <div class="admin-content">
       <!-- 左侧导航 -->
       <div class="admin-sidebar">
@@ -117,6 +93,30 @@
               🔄 重置数据
             </button>
             <button v-if="isEditing" @click="cancelEdit" class="btn btn-secondary">↩️ 取消</button>
+          </div>
+        </div>
+
+        <!-- 顶部搜索区域 -->
+        <div class="admin-header">
+          <div class="search-container">
+            <div class="search-box">
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="搜索网站进行编辑..."
+                @keyup.enter="handleAdminSearch"
+                class="search-input" />
+              <button @click="handleAdminSearch" class="search-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1304,9 +1304,10 @@
 
   .admin-header {
     background: white;
-    padding: 1rem 2rem;
-    border-bottom: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    box-sizing: border-box;
+    /* border-bottom: 1px solid #e5e7eb; */
+    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
   }
 
   .admin-content {
@@ -1582,9 +1583,10 @@
 
   .website-list {
     background: white;
-    border-radius: 12px;
+    /* border-radius: 12px; */
     padding: 2rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
   }
 
   .list-header {
