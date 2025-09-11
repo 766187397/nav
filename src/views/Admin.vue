@@ -666,7 +666,7 @@
 
       // 尝试从网站HTML中查找link标签中的图标
       try {
-        const response = await axios.get(`https://corsproxy.io/${encodeURIComponent(url)}`, {
+        const response = await axios.get(`https://corsproxy.io/?url=${url}`, {
           // responseType: "text",
           timeout: 5000,
           headers: {
@@ -771,7 +771,7 @@
   // 获取网站元数据（标题和描述）
   const fetchWebsiteDescription = async (url: string): Promise<{ title: string; description: string }> => {
     try {
-      const response = await axios.get(`https://corsproxy.io/${encodeURIComponent(url)}`, {
+      const response = await axios.get(`https://corsproxy.io/?url=${url}`, {
         // responseType: "text",
         timeout: 5000,
         headers: {
