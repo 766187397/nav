@@ -288,8 +288,8 @@
         console.log("从本地存储加载网站数据");
       } else {
         // 如果没有本地数据，使用JSON数据并保存到localforage
-        categories.value = websitesData.categories;
-        const dataToSave = JSON.parse(JSON.stringify(websitesData.categories));
+        categories.value = (websitesData as { categories: Category[] }).categories;
+        const dataToSave = JSON.parse(JSON.stringify((websitesData as { categories: Category[] }).categories));
         await localforage.setItem("websiteCategories", dataToSave);
         console.log("从JSON文件加载并保存到本地存储");
       }
@@ -301,7 +301,7 @@
     } catch (error) {
       console.error("加载网站数据失败:", error);
       // 出错时使用默认数据
-      categories.value = websitesData.categories;
+      categories.value = (websitesData as { categories: Category[] }).categories;
     } finally {
       isLoading.value = false;
     }

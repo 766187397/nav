@@ -125,7 +125,7 @@
   };
 
   // 热门搜索建议
-  const hotSuggestions: string[] = websitesData.hotSuggestions;
+  const hotSuggestions: string[] = (websitesData as { hotSuggestions?: string[] }).hotSuggestions || [];
 
   // 搜索网站数据
   const searchWebsites = (query: string, categories: Category[]): SearchResult[] => {
@@ -217,7 +217,7 @@
 
     if (currentEngine.value === "site") {
       // 执行站内搜索
-      searchResults.value = searchWebsites(searchQuery.value, websitesData.categories);
+      searchResults.value = searchWebsites(searchQuery.value, (websitesData as { categories: Category[] }).categories);
       showResults.value = true;
     } else {
       // 跳转到外部搜索引擎
