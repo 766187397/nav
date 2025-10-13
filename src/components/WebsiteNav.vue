@@ -67,21 +67,7 @@
   import localforage from "localforage";
   import axios from "axios";
   import websitesData from "@/data/websites.json";
-
-  interface Website {
-  id: string;
-  name: string;
-  url: string;
-  icon: string;
-  description: string;
-}
-
-  interface Category {
-    id: string;
-    name: string;
-    icon: string;
-    websites: Website[];
-  }
+  import type { Category, Website } from "@/data/websites";
 
   const categories = ref<Category[]>([]);
   const activeCategory = ref<string>("");
@@ -289,12 +275,12 @@
         console.log("从本地存储加载网站数据");
       } else {
         // 如果没有本地数据，使用JSON数据并保存到localforage，确保所有网站都有ID
-        categories.value = (websitesData as { categories: Category[] }).categories.map(category => ({
+        categories.value = websitesData.categories.map((category) => ({
           ...category,
           websites: category.websites.map((website: any) => ({
             ...website,
-            id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-          }))
+            id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          })),
         }));
         const dataToSave = JSON.parse(JSON.stringify(categories.value));
         await localforage.setItem("websiteCategories", dataToSave);
@@ -308,12 +294,12 @@
     } catch (error) {
       console.error("加载网站数据失败:", error);
       // 出错时使用默认数据，确保所有网站都有ID
-      categories.value = (websitesData as { categories: Category[] }).categories.map(category => ({
+      categories.value = websitesData.categories.map((category) => ({
         ...category,
         websites: category.websites.map((website: any) => ({
           ...website,
-          id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-        }))
+          id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        })),
       }));
     } finally {
       isLoading.value = false;
