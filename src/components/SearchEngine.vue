@@ -122,7 +122,7 @@ const buildSearchUrl = (engine: SearchEngine, query: string): string => {
 };
 
 // 热门搜索建议
-const hotSuggestions: string[] = websitesData.hotSuggestions || [];
+const hotSuggestions: string[] = (websitesData as { hotSuggestions: string[] }).hotSuggestions || [];
 
 // 搜索网站数据
 const searchWebsites = (query: string, categories: Category[]): SearchResult[] => {
@@ -213,8 +213,15 @@ const handleSearch = () => {
   if (!isValidSearchQuery(searchQuery.value)) return;
 
   if (currentEngine.value === "site") {
-    // 执行站内搜索
-    searchResults.value = searchWebsites(searchQuery.value, websitesData.categories);
+    // 执行站内搜索，确保所有网站都有ID
+    const categoriesWithIds = (websitesData as { categories: any[] }).categories.map(category => ({
+      ...category,
+      websites: category.websites.map((website: any) => ({
+        ...website,
+        id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      }))
+    }));
+    searchResults.value = searchWebsites(searchQuery.value, categoriesWithIds);
     showResults.value = true;
   } else {
     // 跳转到外部搜索引擎

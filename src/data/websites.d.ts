@@ -6,6 +6,7 @@
  * 网站信息接口
  */
 interface Website {
+  id: string;
   name: string;
   url: string;
   icon: string;

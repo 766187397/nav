@@ -1,5 +1,6 @@
 // 网站数据类型
 export interface Website {
+  id: string;
   name: string;
   url: string;
   description: string;
@@ -20,6 +21,7 @@ export interface WebsitesData {
 
 // 搜索结果类型
 export interface SearchResult {
+  id: string;
   name: string;
   url: string;
   description: string;

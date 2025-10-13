@@ -432,16 +432,17 @@
 
 <script setup lang="ts">
   import { ref, computed, onMounted } from "vue";
-  import localforage from "localforage";
-  import draggable from "vuedraggable";
-  import websitesData from "@/data/websites.json";
-  import axios from "axios";
-  import emojisData from "@/data/emojis.json";
-  import type { SearchResult } from "@/types/search";
+import localforage from "localforage";
+import draggable from "vuedraggable";
+import websitesData from "@/data/websites.json";
+import axios from "axios";
+import emojisData from "@/data/emojis.json";
+import type { SearchResult } from "@/types/search";
+import type { Category } from "@/data/websites.d";
 
   // 状态管理变量
   const allWebsites = ref<SearchResult[]>([]);
-  const categories = ref<typeof websitesData.categories>([]);
+  const categories = ref<Category[]>([]);
   const searchQuery = ref<string>("");
   const selectedCategory = ref<string>("");
   const isLoading = ref<boolean>(true);
@@ -466,7 +467,7 @@
 
   // 编辑分类相关状态
   const showEditCategoryModal = ref<boolean>(false);
-  const editingCategory = ref<(typeof websitesData.categories)[number] | null>(null);
+  const editingCategory = ref<Category | null>(null);
   const editCategoryStatus = ref<"idle" | "saving" | "success" | "error">("idle");
 
   // 拖拽排序相关状态
@@ -571,11 +572,23 @@
       // 首先尝试从 localforage 读取修改后的数据
       const savedData = await localforage.getItem("websiteCategories");
       if (savedData) {
-        // 使用保存的数据
-        categories.value = savedData as typeof websitesData.categories;
+        // 使用保存的数据，并确保所有网站都有ID
+        categories.value = (savedData as any[]).map(category => ({
+          ...category,
+          websites: category.websites.map((website: any) => ({
+            ...website,
+            id: website.id || `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          }))
+        }));
       } else {
-        // 如果没有保存的数据，使用导入的静态数据
-        categories.value = websitesData.categories;
+        // 如果没有保存的数据，使用导入的静态数据，并添加ID
+        categories.value = (websitesData as { categories: any[] }).categories.map(category => ({
+          ...category,
+          websites: category.websites.map((website: any) => ({
+            ...website,
+            id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          }))
+        }));
       }
 
       // 更新 allWebsites 用于搜索
@@ -591,8 +604,14 @@
       });
     } catch (error) {
       console.error("加载数据失败:", error);
-      // 降级方案：使用导入的静态数据
-      categories.value = websitesData.categories;
+      // 降级方案：使用导入的静态数据，并添加ID
+      categories.value = (websitesData as { categories: any[] }).categories.map(category => ({
+        ...category,
+        websites: category.websites.map((website: any) => ({
+          ...website,
+          id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        }))
+      }));
       allWebsites.value = [];
       categories.value.forEach((category) => {
         category.websites.forEach((website) => {
@@ -623,6 +642,7 @@
   };
 
   interface Website {
+    id: string;
     name: string;
     url: string;
     icon: string;
@@ -1053,47 +1073,50 @@
       }
 
       // 实际更新本地数据
-      if (editingWebsite.value) {
-        // 编辑现有网站 - 处理分类变更
-        const oldCategory = categories.value.find((c) => 
-          c.websites.some((w) => w.name === editingWebsite.value?.name)
-        );
-        const newCategory = categories.value.find((c) => c.id === editForm.value.categoryId);
-        
-        if (oldCategory && newCategory) {
-          // 如果分类发生了变化
-          if (oldCategory.id !== newCategory.id) {
-            // 从原分类中移除网站
-            const websiteIndex = oldCategory.websites.findIndex((w) => w.name === editingWebsite.value?.name);
-            if (websiteIndex !== -1) {
-              oldCategory.websites.splice(websiteIndex, 1);
-            }
-            
-            // 添加到新分类
-            newCategory.websites.push({
-              name: editForm.value.name,
-              url: editForm.value.url,
-              icon: finalIcon,
-              description: editForm.value.description,
-            });
-          } else {
-            // 分类未变，只更新网站信息
-            const websiteIndex = oldCategory.websites.findIndex((w) => w.name === editingWebsite.value?.name);
-            if (websiteIndex !== -1) {
-              oldCategory.websites[websiteIndex] = {
+        if (editingWebsite.value) {
+          // 编辑现有网站 - 处理分类变更
+          const oldCategory = categories.value.find((c) =>
+            c.websites.some((w) => w.id === editingWebsite.value?.id)
+          );
+          const newCategory = categories.value.find((c) => c.id === editForm.value.categoryId);
+
+          if (oldCategory && newCategory) {
+            // 如果分类发生了变化
+            if (oldCategory.id !== newCategory.id) {
+              // 从原分类中移除网站
+              const websiteIndex = oldCategory.websites.findIndex((w) => w.id === editingWebsite.value?.id);
+              if (websiteIndex !== -1) {
+                oldCategory.websites.splice(websiteIndex, 1);
+              }
+
+              // 添加到新分类
+              newCategory.websites.push({
+                id: editingWebsite.value.id, // 保持原有ID
                 name: editForm.value.name,
                 url: editForm.value.url,
                 icon: finalIcon,
                 description: editForm.value.description,
-              };
+              });
+            } else {
+              // 分类未变，只更新网站信息
+              const websiteIndex = oldCategory.websites.findIndex((w) => w.id === editingWebsite.value?.id);
+              if (websiteIndex !== -1) {
+                oldCategory.websites[websiteIndex] = {
+                  id: editingWebsite.value.id, // 保持原有ID
+                  name: editForm.value.name,
+                  url: editForm.value.url,
+                  icon: finalIcon,
+                  description: editForm.value.description,
+                };
+              }
             }
           }
-        }
       } else {
         // 添加新网站
         const category = categories.value.find((c) => c.id === editForm.value.categoryId);
         if (category) {
           category.websites.push({
+            id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             name: editForm.value.name,
             url: editForm.value.url,
             icon: finalIcon,
@@ -1141,8 +1164,8 @@
       // 实际删除本地数据
       const category = categories.value.find((c) => c.name === editingWebsite.value?.category);
       if (category) {
-        // 删除网站
-        category.websites = category.websites.filter((site) => site.name !== editingWebsite.value?.name);
+        // 删除网站 - 基于ID而不是名称
+        category.websites = category.websites.filter((site) => site.id !== editingWebsite.value?.id);
 
         // 保存到 localforage - 需要深度克隆以避免循环引用
         const dataToSave = JSON.parse(JSON.stringify(categories.value));
@@ -1181,7 +1204,7 @@
     try {
       // 获取当前数据
       const currentData = await localforage.getItem("websiteCategories");
-      const dataToExport = currentData || websitesData.categories;
+      const dataToExport = currentData || (websitesData as any).categories;
 
       // 创建JSON字符串
       const jsonString = JSON.stringify(dataToExport, null, 2);
@@ -1355,7 +1378,7 @@
     };
   };
 
-  const editCategory = (category: (typeof websitesData.categories)[number]) => {
+  const editCategory = (category: Category) => {
     editingCategory.value = category;
     editCategoryForm.value = {
       name: category.name,
