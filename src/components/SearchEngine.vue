@@ -89,6 +89,7 @@
 <script setup lang="ts">
 import { ref, withDefaults, computed } from "vue";
 import websitesData from "@/data/websites.json";
+import localforage from "localforage";
 import type { SearchEngine, SearchResult, SearchEngineMap, Category } from "../types/search";
 
 // 搜索引擎配置
@@ -209,20 +210,61 @@ const handleInputChange = () => {
 };
 
 // 处理搜索
-const handleSearch = () => {
+const handleSearch = async () => {
   if (!isValidSearchQuery(searchQuery.value)) return;
 
   if (currentEngine.value === "site") {
-    // 执行站内搜索，确保所有网站都有ID
-    const categoriesWithIds = (websitesData as { categories: any[] }).categories.map(category => ({
-      ...category,
-      websites: category.websites.map((website: any) => ({
-        ...website,
-        id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-      }))
-    }));
-    searchResults.value = searchWebsites(searchQuery.value, categoriesWithIds);
-    showResults.value = true;
+    try {
+      // 首先尝试从本地缓存加载数据
+      const storedData = await localforage.getItem<Category[]>("websiteCategories");
+      let categoriesToSearch: Category[];
+
+      if (storedData && storedData.length > 0) {
+        // 使用本地缓存的数据（包含手动新增的内容）
+        categoriesToSearch = storedData;
+        console.log("使用本地缓存数据进行搜索", storedData);
+        console.log("缓存数据中的网站数量:", storedData.reduce((total, category) => total + category.websites.length, 0));
+
+        // 调试：打印缓存数据中的所有网站名称
+        console.log("缓存数据中的所有网站名称:");
+        storedData.forEach((category, index) => {
+          console.log(`分类 ${index + 1} (${category.name}):`);
+          category.websites.forEach((website, wIndex) => {
+            console.log(`  ${wIndex + 1}. ${website.name} - ${website.description || '无描述'}`);
+          });
+        });
+      } else {
+        // 如果没有缓存数据，使用JSON文件数据，确保所有网站都有ID
+        categoriesToSearch = (websitesData as { categories: Category[] }).categories.map(category => ({
+          ...category,
+          websites: category.websites.map((website: any) => ({
+            ...website,
+            id: website.id || `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          }))
+        }));
+        console.log("使用JSON文件数据进行搜索");
+        console.log("JSON数据中的网站数量:", categoriesToSearch.reduce((total, category) => total + category.websites.length, 0));
+      }
+
+      console.log("搜索关键词:", searchQuery.value);
+      const results = searchWebsites(searchQuery.value, categoriesToSearch);
+      console.log("搜索结果数量:", results.length);
+      console.log("搜索结果:", results);
+      searchResults.value = results;
+      showResults.value = true;
+    } catch (error) {
+      console.error("加载搜索数据失败:", error);
+      // 出错时使用JSON文件数据作为后备
+      const categoriesWithIds = (websitesData as { categories: any[] }).categories.map(category => ({
+        ...category,
+        websites: category.websites.map((website: any) => ({
+          ...website,
+          id: website.id || `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        }))
+      }));
+      searchResults.value = searchWebsites(searchQuery.value, categoriesWithIds);
+      showResults.value = true;
+    }
   } else {
     // 跳转到外部搜索引擎
     performExternalSearch(currentEngine.value, searchQuery.value);
