@@ -114,6 +114,9 @@
           </div>
         </div>
 
+        <!-- 热门搜索建议编辑器 -->
+        <HotSuggestionsEditor />
+
         <!-- 编辑表单 -->
         <div class="edit-form" v-if="isEditing">
           <form @submit.prevent="saveWebsite">
@@ -432,13 +435,14 @@
 
 <script setup lang="ts">
   import { ref, computed, onMounted } from "vue";
-import localforage from "localforage";
-import draggable from "vuedraggable";
-import websitesData from "@/data/websites.json";
-import axios from "axios";
-import emojisData from "@/data/emojis.json";
-import type { SearchResult } from "@/types/search";
-import type { Category } from "@/data/websites.d";
+  import localforage from "localforage";
+  import draggable from "vuedraggable";
+  import websitesData from "@/data/websites.json";
+  import axios from "axios";
+  import emojisData from "@/data/emojis.json";
+  import type { SearchResult } from "@/types/search";
+  import type { Category } from "@/data/websites.d";
+  import HotSuggestionsEditor from "@/components/HotSuggestionsEditor.vue";
 
   // 状态管理变量
   const allWebsites = ref<SearchResult[]>([]);
@@ -530,7 +534,7 @@ import type { Category } from "@/data/websites.d";
             (website) =>
               website.name.toLowerCase().includes(query) ||
               website.url.toLowerCase().includes(query) ||
-              website.description.toLowerCase().includes(query)
+              website.description.toLowerCase().includes(query),
           ),
         }))
         .filter((category) => category.websites.length > 0);
@@ -558,7 +562,7 @@ import type { Category } from "@/data/websites.d";
           w.name.toLowerCase().includes(query) ||
           w.url.toLowerCase().includes(query) ||
           w.description.toLowerCase().includes(query) ||
-          w.category.toLowerCase().includes(query)
+          w.category.toLowerCase().includes(query),
       );
     }
 
@@ -573,21 +577,21 @@ import type { Category } from "@/data/websites.d";
       const savedData = await localforage.getItem("websiteCategories");
       if (savedData) {
         // 使用保存的数据，并确保所有网站都有ID
-        categories.value = (savedData as any[]).map(category => ({
+        categories.value = (savedData as any[]).map((category) => ({
           ...category,
           websites: category.websites.map((website: any) => ({
             ...website,
-            id: website.id || `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-          }))
+            id: website.id || `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          })),
         }));
       } else {
         // 如果没有保存的数据，使用导入的静态数据，并添加ID
-        categories.value = (websitesData as { categories: any[] }).categories.map(category => ({
+        categories.value = (websitesData as { categories: any[] }).categories.map((category) => ({
           ...category,
           websites: category.websites.map((website: any) => ({
             ...website,
-            id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-          }))
+            id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          })),
         }));
       }
 
@@ -605,12 +609,12 @@ import type { Category } from "@/data/websites.d";
     } catch (error) {
       console.error("加载数据失败:", error);
       // 降级方案：使用导入的静态数据，并添加ID
-      categories.value = (websitesData as { categories: any[] }).categories.map(category => ({
+      categories.value = (websitesData as { categories: any[] }).categories.map((category) => ({
         ...category,
         websites: category.websites.map((website: any) => ({
           ...website,
-          id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-        }))
+          id: `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        })),
       }));
       allWebsites.value = [];
       categories.value.forEach((category) => {
@@ -831,7 +835,7 @@ import type { Category } from "@/data/websites.d";
 
       // 查找meta description
       const descriptionMatch = html.match(
-        /<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i
+        /<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i,
       );
       if (descriptionMatch && descriptionMatch[1]) {
         description = descriptionMatch[1].trim();
@@ -839,7 +843,7 @@ import type { Category } from "@/data/websites.d";
 
       // 查找og:description
       const ogDescriptionMatch = html.match(
-        /<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["'][^>]*>/i
+        /<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["'][^>]*>/i,
       );
       if (ogDescriptionMatch && ogDescriptionMatch[1] && !description) {
         description = ogDescriptionMatch[1].trim();
@@ -847,7 +851,7 @@ import type { Category } from "@/data/websites.d";
 
       // 查找twitter:description
       const twitterDescriptionMatch = html.match(
-        /<meta[^>]*name=["']twitter:description["'][^>]*content=["']([^"']*)["'][^>]*>/i
+        /<meta[^>]*name=["']twitter:description["'][^>]*content=["']([^"']*)["'][^>]*>/i,
       );
       if (twitterDescriptionMatch && twitterDescriptionMatch[1] && !description) {
         description = twitterDescriptionMatch[1].trim();
@@ -1073,44 +1077,44 @@ import type { Category } from "@/data/websites.d";
       }
 
       // 实际更新本地数据
-        if (editingWebsite.value) {
-          // 编辑现有网站 - 处理分类变更
-          const oldCategory = categories.value.find((c) =>
-            c.websites.some((w) => w.id === editingWebsite.value?.id)
-          );
-          const newCategory = categories.value.find((c) => c.id === editForm.value.categoryId);
+      if (editingWebsite.value) {
+        // 编辑现有网站 - 处理分类变更
+        const oldCategory = categories.value.find((c) =>
+          c.websites.some((w) => w.id === editingWebsite.value?.id),
+        );
+        const newCategory = categories.value.find((c) => c.id === editForm.value.categoryId);
 
-          if (oldCategory && newCategory) {
-            // 如果分类发生了变化
-            if (oldCategory.id !== newCategory.id) {
-              // 从原分类中移除网站
-              const websiteIndex = oldCategory.websites.findIndex((w) => w.id === editingWebsite.value?.id);
-              if (websiteIndex !== -1) {
-                oldCategory.websites.splice(websiteIndex, 1);
-              }
+        if (oldCategory && newCategory) {
+          // 如果分类发生了变化
+          if (oldCategory.id !== newCategory.id) {
+            // 从原分类中移除网站
+            const websiteIndex = oldCategory.websites.findIndex((w) => w.id === editingWebsite.value?.id);
+            if (websiteIndex !== -1) {
+              oldCategory.websites.splice(websiteIndex, 1);
+            }
 
-              // 添加到新分类
-              newCategory.websites.push({
+            // 添加到新分类
+            newCategory.websites.push({
+              id: editingWebsite.value.id, // 保持原有ID
+              name: editForm.value.name,
+              url: editForm.value.url,
+              icon: finalIcon,
+              description: editForm.value.description,
+            });
+          } else {
+            // 分类未变，只更新网站信息
+            const websiteIndex = oldCategory.websites.findIndex((w) => w.id === editingWebsite.value?.id);
+            if (websiteIndex !== -1) {
+              oldCategory.websites[websiteIndex] = {
                 id: editingWebsite.value.id, // 保持原有ID
                 name: editForm.value.name,
                 url: editForm.value.url,
                 icon: finalIcon,
                 description: editForm.value.description,
-              });
-            } else {
-              // 分类未变，只更新网站信息
-              const websiteIndex = oldCategory.websites.findIndex((w) => w.id === editingWebsite.value?.id);
-              if (websiteIndex !== -1) {
-                oldCategory.websites[websiteIndex] = {
-                  id: editingWebsite.value.id, // 保持原有ID
-                  name: editForm.value.name,
-                  url: editForm.value.url,
-                  icon: finalIcon,
-                  description: editForm.value.description,
-                };
-              }
+              };
             }
           }
+        }
       } else {
         // 添加新网站
         const category = categories.value.find((c) => c.id === editForm.value.categoryId);
@@ -1202,17 +1206,15 @@ import type { Category } from "@/data/websites.d";
   // 导出数据为JSON文件
   const exportData = async () => {
     try {
-      // 获取当前分类数据
       const currentCategories = await localforage.getItem("websiteCategories");
       const categoriesToExport = currentCategories || (websitesData as any).categories;
 
-      // 获取热门搜索建议
-      const hotSuggestionsToExport = (websitesData as any).hotSuggestions || [];
+      const currentHotSuggestions = await localforage.getItem<string[]>("hotSuggestions");
+      const hotSuggestionsToExport = currentHotSuggestions || (websitesData as any).hotSuggestions || [];
 
-      // 构建完整的导出数据对象
       const dataToExport = {
         hotSuggestions: hotSuggestionsToExport,
-        categories: categoriesToExport
+        categories: categoriesToExport,
       };
 
       // 创建JSON字符串
@@ -1263,33 +1265,28 @@ import type { Category } from "@/data/websites.d";
       // 解析JSON
       const importedData = JSON.parse(fileContent);
 
-      // 支持两种导入格式：
-      // 1. 完整的 WebsitesData 对象（包含 hotSuggestions 和 categories）
-      // 2. 仅 categories 数组（向后兼容）
       let categoriesToImport: any[];
+      let hotSuggestionsToImport: string[] | undefined;
 
       if (importedData.categories && Array.isArray(importedData.categories)) {
-        // 格式1：完整的 WebsitesData 对象
         categoriesToImport = importedData.categories;
-        
-        // 如果有 hotSuggestions，可以选择是否更新（这里暂不处理 hotSuggestions 的更新）
-        // 因为 hotSuggestions 通常不需要频繁修改
+        hotSuggestionsToImport = importedData.hotSuggestions;
       } else if (Array.isArray(importedData)) {
-        // 格式2：仅 categories 数组（向后兼容）
         categoriesToImport = importedData;
       } else {
         throw new Error("无效的数据格式");
       }
 
-      // 验证数据格式
       if (!categoriesToImport.every((item: any) => item.id && item.name && Array.isArray(item.websites))) {
         throw new Error("无效的数据格式");
       }
 
-      // 保存到localforage
       await localforage.setItem("websiteCategories", categoriesToImport);
 
-      // 更新本地状态
+      if (hotSuggestionsToImport && Array.isArray(hotSuggestionsToImport)) {
+        await localforage.setItem("hotSuggestions", hotSuggestionsToImport);
+      }
+
       importStatus.value = "success";
 
       // 重新加载数据
@@ -1476,7 +1473,7 @@ import type { Category } from "@/data/websites.d";
     const category = categories.value.find((c) => c.id === categoryId);
     if (category && category.websites.length > 0) {
       alert(
-        `无法删除分类"${category.name}"，该分类下还有 ${category.websites.length} 个网站。请先移动或删除这些网站。`
+        `无法删除分类"${category.name}"，该分类下还有 ${category.websites.length} 个网站。请先移动或删除这些网站。`,
       );
       return;
     }
