@@ -1202,9 +1202,18 @@ import type { Category } from "@/data/websites.d";
   // 导出数据为JSON文件
   const exportData = async () => {
     try {
-      // 获取当前数据
-      const currentData = await localforage.getItem("websiteCategories");
-      const dataToExport = currentData || (websitesData as any).categories;
+      // 获取当前分类数据
+      const currentCategories = await localforage.getItem("websiteCategories");
+      const categoriesToExport = currentCategories || (websitesData as any).categories;
+
+      // 获取热门搜索建议
+      const hotSuggestionsToExport = (websitesData as any).hotSuggestions || [];
+
+      // 构建完整的导出数据对象
+      const dataToExport = {
+        hotSuggestions: hotSuggestionsToExport,
+        categories: categoriesToExport
+      };
 
       // 创建JSON字符串
       const jsonString = JSON.stringify(dataToExport, null, 2);
@@ -1216,7 +1225,6 @@ import type { Category } from "@/data/websites.d";
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      // link.download = "website-data-" + new Date().toISOString().split("T")[0] + ".json";
       link.download = "websites.json";
 
       // 触发下载
@@ -1255,16 +1263,31 @@ import type { Category } from "@/data/websites.d";
       // 解析JSON
       const importedData = JSON.parse(fileContent);
 
+      // 支持两种导入格式：
+      // 1. 完整的 WebsitesData 对象（包含 hotSuggestions 和 categories）
+      // 2. 仅 categories 数组（向后兼容）
+      let categoriesToImport: any[];
+
+      if (importedData.categories && Array.isArray(importedData.categories)) {
+        // 格式1：完整的 WebsitesData 对象
+        categoriesToImport = importedData.categories;
+        
+        // 如果有 hotSuggestions，可以选择是否更新（这里暂不处理 hotSuggestions 的更新）
+        // 因为 hotSuggestions 通常不需要频繁修改
+      } else if (Array.isArray(importedData)) {
+        // 格式2：仅 categories 数组（向后兼容）
+        categoriesToImport = importedData;
+      } else {
+        throw new Error("无效的数据格式");
+      }
+
       // 验证数据格式
-      if (
-        !Array.isArray(importedData) ||
-        !importedData.every((item) => item.id && item.name && Array.isArray(item.websites))
-      ) {
+      if (!categoriesToImport.every((item: any) => item.id && item.name && Array.isArray(item.websites))) {
         throw new Error("无效的数据格式");
       }
 
       // 保存到localforage
-      await localforage.setItem("websiteCategories", importedData);
+      await localforage.setItem("websiteCategories", categoriesToImport);
 
       // 更新本地状态
       importStatus.value = "success";
