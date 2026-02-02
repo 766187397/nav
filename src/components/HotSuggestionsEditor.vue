@@ -45,11 +45,13 @@ const loadSuggestions = async () => {
     } else {
       const defaultSuggestions = (websitesData as { hotSuggestions: string[] }).hotSuggestions || [];
       suggestionsText.value = defaultSuggestions.join(", ");
+      await localforage.setItem("hotSuggestions", defaultSuggestions);
     }
   } catch (error) {
     console.error("加载热门搜索建议失败:", error);
     const defaultSuggestions = (websitesData as { hotSuggestions: string[] }).hotSuggestions || [];
     suggestionsText.value = defaultSuggestions.join(", ");
+    await localforage.setItem("hotSuggestions", defaultSuggestions);
   }
 };
 

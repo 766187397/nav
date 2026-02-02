@@ -131,11 +131,15 @@
       if (cachedSuggestions && Array.isArray(cachedSuggestions)) {
         hotSuggestions.value = cachedSuggestions;
       } else {
-        hotSuggestions.value = (websitesData as { hotSuggestions: string[] }).hotSuggestions || [];
+        const defaultSuggestions = (websitesData as { hotSuggestions: string[] }).hotSuggestions || [];
+        hotSuggestions.value = defaultSuggestions;
+        await localforage.setItem("hotSuggestions", defaultSuggestions);
       }
     } catch (error) {
       console.error("加载热门搜索建议失败:", error);
-      hotSuggestions.value = (websitesData as { hotSuggestions: string[] }).hotSuggestions || [];
+      const defaultSuggestions = (websitesData as { hotSuggestions: string[] }).hotSuggestions || [];
+      hotSuggestions.value = defaultSuggestions;
+      await localforage.setItem("hotSuggestions", defaultSuggestions);
     }
   };
 
