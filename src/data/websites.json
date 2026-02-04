@@ -1198,6 +1198,13 @@
           "url": "https://www.uisdc.com/",
           "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CiAgICAgIDxjaXJjbGUgY3g9IjI0IiBjeT0iMjQiIHI9IjE2IiBmaWxsPSIjNEY0NkU1Ii8+CiAgICAgIDx0ZXh0IHg9IjI0IiB5PSIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiPj88L3RleHQ+CiAgICA8L3N2Zz4=",
           "description": "优设网 (uisdc.com) 是国内设计师入门到进阶的专业设计网站。AIGC及设计内容全面及时，全网粉丝过千万。专注前沿设计趋势和设计方法论，拥有原创独家设计内容和设计师网站导航。提供AIGC教程、灵感素材、UI设计、平面设计、网页设计、电商设计、SDC网站推荐。"
+        },
+        {
+          "id": "website-1770086484938-feo2b46ve",
+          "name": "Imgchr",
+          "url": "https://imgchr.com/",
+          "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CiAgICAgIDxjaXJjbGUgY3g9IjI0IiBjeT0iMjQiIHI9IjE2IiBmaWxsPSIjNEY0NkU1Ii8+CiAgICAgIDx0ZXh0IHg9IjI0IiB5PSIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiPj88L3RleHQ+CiAgICA8L3N2Zz4=",
+          "description": "路过图床, 免费公共图床, 提供图片上传和图片外链服务, 原图保存, 全球CDN加速."
         }
       ]
     },
